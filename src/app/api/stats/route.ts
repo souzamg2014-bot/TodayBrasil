@@ -11,7 +11,7 @@ const supabase = createClient(
 export async function GET() {
   const [sectors, searches, terms] = await Promise.all([
     supabase.rpc("sector_counts", { days: 7 }),
-    supabase.rpc("top_searches", { days: 7, lim: 10 }),
+    supabase.rpc("top_searches", { days: 7, lim: 5 }),
     supabase.rpc("trending_terms", { days: 3, lim: 18 }),
   ]);
 
