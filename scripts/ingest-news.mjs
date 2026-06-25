@@ -16,6 +16,7 @@ import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { SOURCES } from "./sources.pt.mjs";
 import { classifyThemes } from "./themes.mjs";
+import { classify } from "./classify.mjs";
 
 // idioma desta rodada (fase 1 = pt). No futuro: rodar o robo por lang.
 const LANG = process.env.INGEST_LANG || "pt";
@@ -42,42 +43,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSessio
 // fontes vem de sources.pt.mjs (dedupe por URL). cada fonte: { url, sector }.
 const FEEDS = [...new Map(SOURCES.map((s) => [s.url, s])).values()];
 
-// ---- palavras-chave por setor (18) ----
-const KEYWORDS = {
-  agronegocio: ["agro", "agronegocio", "agropecuaria", "safra", "soja", "milho", "boi", "gado", "fazenda", "produtor rural", "cafe", "cana", "fertilizante", "colheita", "pecuaria"],
-  "alimentos-bebidas": ["alimento", "bebida", "cerveja", "frigorifico", "laticinio", "padaria", "food", "ultraprocessado", "marca de alimento"],
-  "comercio-varejista": ["varejo", "e-commerce", "ecommerce", "magazine luiza", "shopping", "black friday", "loja", "vendas no varejo", "consumidor"],
-  "comercio-atacadista": ["atacado", "atacadista", "distribuidor", "importacao", "exportacao", "atacarejo"],
-  industria: ["industria", "fabrica", "manufatura", "siderurgia", "metalurgia", "montadora", "textil", "petroquimica", "producao industrial"],
-  "construcao-imobiliario": ["construcao", "obra", "imovel", "imobiliario", "incorporadora", "engenharia civil", "lancamento imobiliario", "aluguel"],
-  "tecnologia-software": ["tecnologia", "software", "startup", "inteligencia artificial", " ia ", "saas", "nuvem", "ciberseguranca", "fintech", "app ", "tech"],
-  telecomunicacoes: ["telecom", "banda larga", "5g", "operadora", "provedor", "data center", "vivo", "claro", "tim "],
-  "servicos-financeiros": ["banco", "juros", "selic", "credito", "investimento", "bolsa", "seguro", "cambio", "ibovespa", "pix", "pagamento", "inadimplencia"],
-  "servicos-empresariais": ["consultoria", "contabilidade", "advocacia", "auditoria", "recrutamento", "marketing", "publicidade", "recursos humanos"],
-  "saude-bem-estar": ["saude", "hospital", "clinica", "medico", "farmacia", "plano de saude", "odontologia", "academia", "estetica", "bem-estar"],
-  educacao: ["educacao", "escola", "ensino", "universidade", "vestibular", "enem", "edtech", "curso"],
-  "transporte-logistica": ["transporte", "logistica", "frete", "caminhao", "transportadora", "entrega", "mobilidade", "porto", "rodovia"],
-  "energia-recursos": ["energia", "eletrica", "solar", "petroleo", "gas natural", "mineracao", "saneamento", "agua", "sustentabilidade", "ambiental"],
-  "turismo-hotelaria": ["turismo", "hotel", "viagem", "pousada", "evento", "gastronomia", "festival", "restaurante"],
-  "servicos-domesticos": ["reforma residencial", "limpeza", "jardinagem", "eletricista", "encanador", "manutencao", "marido de aluguel"],
-  "economia-criativa": ["moda", "musica", "cinema", "audiovisual", "fotografia", "design", "games", "influenciador", "creator", "conteudo"],
-  "setor-publico-terceiro": ["governo", "prefeitura", "ministerio", "ong", "terceiro setor", "politica publica", "licitacao", "congresso"],
-};
-
-function classify(text) {
-  const t = " " + text.toLowerCase() + " ";
-  let best = "geral";
-  let bestScore = 0;
-  for (const [sector, words] of Object.entries(KEYWORDS)) {
-    let score = 0;
-    for (const w of words) if (t.includes(w)) score++;
-    if (score > bestScore) {
-      bestScore = score;
-      best = sector;
-    }
-  }
-  return best;
-}
+// classificador de setor: scripts/classify.mjs (compartilhado com a varredura)
 
 // decodifica as entidades mais comuns ANTES de tirar tags. Google News manda
 // a descricao com HTML escapado (&lt;a href...&gt;); sem decodificar, sobra
