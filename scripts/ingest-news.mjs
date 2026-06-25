@@ -136,9 +136,31 @@ async function fetchText(url, timeoutMs = 12000) {
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
+    return decodeBody(res, Buffer.from(await res.arrayBuffer()));
   } finally {
     clearTimeout(to);
+  }
+}
+
+// Decodifica o corpo no charset certo. Muitos feeds BR (ex: Folha) sao
+// ISO-8859-1/Windows-1252; ler como UTF-8 gera "for�a", "S�o Paulo".
+function decodeBody(res, buf) {
+  let charset = "";
+  const ct = res.headers.get("content-type") || "";
+  const mCt = ct.match(/charset=["']?([\w-]+)/i);
+  if (mCt) charset = mCt[1].toLowerCase();
+  if (!charset) {
+    const head = buf.subarray(0, 300).toString("latin1");
+    const mx = head.match(/encoding=["']([\w-]+)["']/i);
+    if (mx) charset = mx[1].toLowerCase();
+  }
+  if (["iso-8859-1", "latin1", "latin-1", "windows-1252", "cp1252"].includes(charset)) {
+    return new TextDecoder("windows-1252").decode(buf);
+  }
+  try {
+    return new TextDecoder(charset || "utf-8").decode(buf);
+  } catch {
+    return buf.toString("utf-8");
   }
 }
 

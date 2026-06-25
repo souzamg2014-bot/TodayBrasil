@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SECTORS, getSector } from "@/lib/sectors";
+import { getSector } from "@/lib/sectors";
 import { timeAgo } from "@/lib/time";
 
 type Item = {
@@ -95,27 +95,12 @@ export default function Home() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-          <div className="chips">
-            <button
-              className={`chip ${selected.length === 0 ? "active" : ""}`}
-              onClick={() => setSelected([])}
-            >
-              ✨ Tudo
-            </button>
-            {SECTORS.map((s) => (
-              <button
-                key={s.id}
-                className={`chip ${isOn(s.id) ? "active" : ""}`}
-                onClick={() => toggleSector(s.id)}
-              >
-                {s.emoji} {s.label}
-              </button>
-            ))}
-          </div>
           {selected.length > 0 && (
             <div className="selinfo">
-              {selected.length} {selected.length === 1 ? "setor" : "setores"} selecionado
-              {selected.length === 1 ? "" : "s"}
+              Filtrando:{" "}
+              {selected
+                .map((id) => `${getSector(id)?.emoji ?? ""} ${getSector(id)?.label ?? id}`)
+                .join(", ")}
               <button className="clear" onClick={() => setSelected([])}>
                 limpar
               </button>
