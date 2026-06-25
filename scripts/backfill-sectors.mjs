@@ -14,6 +14,13 @@
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { classify } from "./classify.mjs";
+import { SOURCES } from "./sources.pt.mjs";
+
+// host -> setor "hint" (igual o robo: usado quando o texto cai em 'geral')
+const HOST_HINT = {};
+for (const s of SOURCES) {
+  try { HOST_HINT[new URL(s.url).hostname.replace(/^www\./, "")] = s.sector; } catch {}
+}
 
 function loadEnv() {
   try {
@@ -43,7 +50,7 @@ async function main() {
   for (;;) {
     const { data, error } = await supabase
       .from("news_articles")
-      .select("id, title, summary, sector, themes")
+      .select("id, title, summary, source, sector, themes")
       .order("created_at", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) { console.error("erro:", error.message); process.exit(1); }
@@ -51,8 +58,10 @@ async function main() {
     for (const r of data) {
       scanned++;
       if ((r.themes || []).some((t) => LENS_SOURCED.has(t))) continue;
-      const novo = classify(`${r.title} ${r.summary || ""}`);
-      if (novo !== "geral" && novo !== r.sector) toUpdate.push({ id: r.id, sector: novo });
+      // re-deriva igual o robo: classificador; se 'geral', usa o hint da fonte
+      const c = classify(`${r.title} ${r.summary || ""}`);
+      const novo = c !== "geral" ? c : (HOST_HINT[r.source] ?? "geral");
+      if (novo !== r.sector) toUpdate.push({ id: r.id, sector: novo });
     }
     if (data.length < PAGE) break;
     from += PAGE;

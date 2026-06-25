@@ -49,7 +49,7 @@ export const SOURCES = [
   { url: "https://foodconnection.com.br/feed/", sector: "alimentos-bebidas" },
   { url: "https://www.abia.org.br", sector: "alimentos-bebidas" },
   { url: "https://www.superhiper.com.br", sector: "alimentos-bebidas" },
-  { url: "https://www.dcomercio.com.br", sector: "alimentos-bebidas" },
+  { url: "https://www.dcomercio.com.br", sector: "comercio-varejista" },
   { url: "https://www.embalagemmarca.com.br", sector: "alimentos-bebidas" },
 
   // 4. Varejo / e-commerce

@@ -30,30 +30,61 @@ export const KEYWORDS = {
   "setor-publico-terceiro": ["governo", "prefeitura", "ministerio", "ong ", "ongs ", "terceiro setor", "politica publica", "licitacao", "congresso"],
 };
 
+// Exclusoes: frases que indicam o OUTRO sentido da palavra-chave. Cada match
+// DESCONTA 1 do score do setor (neutraliza o falso positivo sem vetar o legitimo).
+// Ex: "banco" pontua financeiro, mas "banco de dados" nao e banco.
+export const EXCLUDE = {
+  "servicos-financeiros": [
+    "banco de dados", "banco de horas", "banco de talentos", "banco de imagens",
+    "banco de leite", "banco de sangue", "banco de celulares", "banco de orgaos",
+    "banco de alimentos", "banco de questoes", "banco de germoplasma",
+    "celular seguro", "modo seguro", "ambiente seguro", "lugar seguro", "local seguro",
+  ],
+  telecomunicacoes: [
+    "operadora de turismo", "operadora de viagens", "operadora de saude",
+    "operadora de plano", "operadora de planos", "operadora de cartao",
+    "operadora de transporte", "operadora logistica", "operadora de seguros",
+  ],
+  "construcao-imobiliario": [
+    "obra de arte", "obras de arte", "obra prima", "obra-prima",
+    "obra cinematografica", "obra literaria", "obra de ficcao", "obra musical",
+  ],
+};
+
 // normaliza: minusculo, sem acento, nao-alfanumerico -> espaco, com espaco nas pontas
 function normalize(s) {
   return " " + (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim() + " ";
 }
 
+function toNeedle(w) {
+  const exact = /\s$/.test(w);
+  const core = normalize(w).trim();
+  return " " + core + (exact ? " " : "");
+}
+
 // pre-compila os "needles": " core" (prefixo) ou " core " (palavra exata)
 const MATCHERS = {};
 for (const [sector, words] of Object.entries(KEYWORDS)) {
-  MATCHERS[sector] = words.map((w) => {
-    const exact = /\s$/.test(w);
-    const core = normalize(w).trim();
-    return " " + core + (exact ? " " : "");
-  });
+  MATCHERS[sector] = words.map(toNeedle);
+}
+const EXCLUDERS = {};
+for (const [sector, words] of Object.entries(EXCLUDE)) {
+  EXCLUDERS[sector] = words.map(toNeedle);
 }
 
-// pontua cada setor pelo numero de palavras-chave presentes (fronteira de palavra)
+// pontua cada setor pelo numero de palavras-chave presentes (fronteira de palavra),
+// descontando as exclusoes (frases de outro sentido).
 export function scoreSectors(text) {
   const t = normalize(text);
   const scores = {};
   for (const [sector, needles] of Object.entries(MATCHERS)) {
     let score = 0;
     for (const n of needles) if (t.includes(n)) score++;
-    if (score) scores[sector] = score;
+    if (score && EXCLUDERS[sector]) {
+      for (const n of EXCLUDERS[sector]) if (t.includes(n)) score--;
+    }
+    if (score > 0) scores[sector] = score;
   }
   return scores;
 }
