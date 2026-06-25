@@ -13,6 +13,9 @@ import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { classifyThemes } from "./themes.mjs";
 
+// lentes de fonte primaria (NAO sao por palavra-chave; nao mexer)
+const LENS_SOURCED = new Set(["cvm", "falimentar", "trabalho", "esg"]);
+
 function loadEnv() {
   try {
     const txt = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
@@ -44,7 +47,7 @@ async function main() {
   for (;;) {
     const { data, error } = await supabase
       .from("news_articles")
-      .select("id, title, summary")
+      .select("id, title, summary, themes")
       .order("created_at", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) {
@@ -57,7 +60,13 @@ async function main() {
       const batch = data.slice(i, i + CONC);
       await Promise.all(
         batch.map(async (row) => {
+          // nao mexe nas lentes de fonte primaria (cvm/falimentar/trabalho/esg);
+          // classifyThemes so cuida das lentes por palavra-chave.
+          if ((row.themes || []).some((t) => LENS_SOURCED.has(t))) return;
           const themes = classifyThemes(`${row.title ?? ""} ${row.summary ?? ""}`);
+          // so grava se mudou (evita escrita atoa)
+          const cur = [...(row.themes || [])].sort().join(",");
+          if (cur === [...themes].sort().join(",")) { processed++; return; }
           const { error: upErr } = await supabase
             .from("news_articles")
             .update({ themes })

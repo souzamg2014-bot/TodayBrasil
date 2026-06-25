@@ -43,14 +43,27 @@ export const THEME_RULES = {
   // M&A - Fusoes e Aquisicoes
   ma: {
     any: [
-      "fusao", "fusoes", "aquisic", "adquir", "incorporac",
+      "fusao", "fusoes", "aquisic", "adquir",
+      "incorporacao de acoes", "incorporacao societaria", "incorporacao reversa",
       "joint venture", "oferta hostil", "oferta publica de aquisic",
       "due diligence", "participacao acionaria", "controle acionario",
       "assume o controle", "compra de controle", "m&a",
       "fusoes e aquisic", "megafusao", "takeover", "take over",
-      "comprou fatia", "comprou a participac", "aporte para adquir",
+      "comprou fatia", "comprar fatia", "comprou a participac", "aporte para adquir",
     ],
-    not: [],
+    // exclusoes: "aquisicao/adquirir" no sentido de marketing/consumo, nao M&A
+    not: [
+      "custo de aquisic", "poder de aquisic", "aquisicao de clientes",
+      "aquisicao de novos clientes", "aquisicao de usuarios", "aquisicao de leads",
+      "aquisicao de habito", "aquisicao de conhecimento", "aquisicao de talento",
+      "aquisicao de imovel", "aquisicao de imoveis", "aquisicao da casa propria",
+      "adquirir conhecimento", "adquirir o habito", "adquirir habito",
+      "adquirir o produto", "adquirir produtos", "adquirir bens de consumo",
+      "onde adquirir", "como adquirir", "adquirir o jogo",
+      "adquirir um produto", "adquirir um aparelho", "adquirir um smartwatch",
+      "adquirir um celular", "adquirir um carro", "adquirir um veiculo",
+      "adquirir um imovel", "adquirir um plano", "adquirir ingresso",
+    ],
   },
 
   // Empreendedorismo
