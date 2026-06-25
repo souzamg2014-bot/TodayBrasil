@@ -9,11 +9,14 @@
     "start": "next start",
     "lint": "next lint",
     "ingest": "node scripts/ingest-news.mjs",
+    "ingest:cvm": "node scripts/ingest-cvm.mjs",
+    "ingest:datajud": "node scripts/ingest-datajud.mjs",
     "backfill:themes": "node scripts/backfill-themes.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.45.0",
+    "fflate": "^0.8.3",
     "next": "15.5.19",
     "react": "19.0.0",
     "react-dom": "19.0.0"
