@@ -15,11 +15,14 @@
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { SOURCES } from "./sources.pt.mjs";
+import { SOURCES_INTL } from "./sources.intl.mjs";
 import { classifyThemes } from "./themes.mjs";
 import { classify } from "./classify.mjs";
 
-// idioma desta rodada (fase 1 = pt). No futuro: rodar o robo por lang.
+// idioma default (fontes PT). Fontes intl trazem o proprio lang.
 const LANG = process.env.INGEST_LANG || "pt";
+// qual conjunto de fontes: pt (default) | intl | all
+const FEED_SET = process.env.FEED_SET || "pt";
 
 function loadEnv() {
   try {
@@ -40,8 +43,12 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 }
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
-// fontes vem de sources.pt.mjs (dedupe por URL). cada fonte: { url, sector }.
-const FEEDS = [...new Map(SOURCES.map((s) => [s.url, s])).values()];
+// fontes (dedupe por URL). cada fonte: { url, sector, lang? }.
+const RAW_FEEDS =
+  FEED_SET === "intl" ? SOURCES_INTL :
+  FEED_SET === "all" ? [...SOURCES, ...SOURCES_INTL] :
+  SOURCES;
+const FEEDS = [...new Map(RAW_FEEDS.map((s) => [s.url, s])).values()];
 
 // classificador de setor: scripts/classify.mjs (compartilhado com a varredura)
 
@@ -183,8 +190,15 @@ const safeDate = (s) => {
   return isNaN(d.getTime()) ? null : d.toISOString();
 };
 
-// Suporta RSS (<item>) e Atom (<entry>). hintSector = setor da fonte (fallback).
-function parseEntries(xml, host, hintSector = "geral") {
+// descarta titulos-lixo (filings da SEC, paginas de navegacao)
+function isJunk(title = "") {
+  return /^\s*(Form\s+(144|3|4|5|S-1|8-K|10-K|10-Q|6-K|13[DGF])|DEF\s*14A|SC\s*13|Schedule\s*13)\b/i.test(title)
+    || /\bForm\s*144\b|\bDEF\s*14A\b/i.test(title);
+}
+
+// Suporta RSS (<item>) e Atom (<entry>). feed = { sector, lang? }.
+function parseEntries(xml, host, feed = {}) {
+  const isIntl = feed.lang && feed.lang !== "pt";
   const blocks = [
     ...[...xml.matchAll(/<item[\s\S]*?<\/item>/gi)].map((m) => m[0]),
     ...[...xml.matchAll(/<entry[\s\S]*?<\/entry>/gi)].map((m) => m[0]),
@@ -199,13 +213,18 @@ function parseEntries(xml, host, hintSector = "geral") {
     const desc = pick(block, "description") || pick(block, "summary") || pick(block, "content");
     const pub =
       pick(block, "pubDate") || pick(block, "published") || pick(block, "updated") || pick(block, "dc:date");
-    // classifica pelo texto; se nao achou setor, usa o setor da fonte
-    let sector = classify(`${title} ${desc}`);
-    if (sector === "geral") sector = hintSector;
-    // lentes (temas que cruzam setores): 0, 1 ou varias por noticia
-    const themes = classifyThemes(`${title} ${desc}`);
+    let sector, themes;
+    if (isIntl) {
+      // o classificador/lentes sao PT-BR: para intl usa o setor da fonte, sem lentes
+      sector = feed.sector || "geral";
+      themes = [];
+    } else {
+      sector = classify(`${title} ${desc}`);
+      if (sector === "geral") sector = feed.sector || "geral";
+      themes = classifyThemes(`${title} ${desc}`);
+    }
     return {
-      lang: LANG,
+      lang: feed.lang || LANG,
       sector,
       themes,
       title,
@@ -220,8 +239,10 @@ function parseEntries(xml, host, hintSector = "geral") {
 
 // Fallback universal: Google News RSS por dominio (nao bloqueia, traz manchetes
 // recentes do veiculo). Usado quando o site nao expoe RSS ou bloqueia o robo.
-function googleNewsFeed(domain) {
+function googleNewsFeed(domain, lang = "pt") {
   const q = encodeURIComponent(`site:${domain}`);
+  if (lang === "es") return `https://news.google.com/rss/search?q=${q}&hl=es-419&gl=MX&ceid=MX:es-419`;
+  if (lang && lang !== "pt") return `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
   return `https://news.google.com/rss/search?q=${q}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 }
 
@@ -232,7 +253,7 @@ async function getFeed(feed) {
     const { url, txt } = await resolveFeed(feed.url);
     return { txt, source: new URL(url).hostname.replace(/^www\./, ""), via: "rss" };
   } catch {
-    const txt = await fetchText(googleNewsFeed(domain), 15000);
+    const txt = await fetchText(googleNewsFeed(domain, feed.lang), 15000);
     return { txt, source: domain, via: "google" };
   }
 }
@@ -255,7 +276,7 @@ async function main() {
         try {
           const { txt, source, via } = await getFeed(feed);
           if (via === "google") viaGoogle++;
-          const articles = parseEntries(txt, source, feed.sector).filter((a) => a.title && a.url);
+          const articles = parseEntries(txt, source, feed).filter((a) => a.title && a.url && !isJunk(a.title));
           if (articles.length === 0) {
             console.log(`  ${feed.url}: 0 itens`);
             failed.push(feed.url);

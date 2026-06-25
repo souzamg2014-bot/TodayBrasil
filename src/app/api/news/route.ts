@@ -24,15 +24,21 @@ export async function GET(request: Request) {
     .map((s) => s.trim())
     .filter(Boolean);
   const q = (sp.get("q") ?? "").trim();
-  const lang = sp.get("lang") ?? "pt";
+  // lang pode vir como lista: ?lang=en,es (filtro "Mundo")
+  const langs = (sp.get("lang") ?? "pt")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const page = Math.max(0, parseInt(sp.get("page") ?? "0", 10) || 0);
 
   let query = supabase
     .from("news_articles")
     .select("id, title, summary, source, url, sector, themes, published_at")
-    .eq("lang", lang)
     .order("published_at", { ascending: false, nullsFirst: false })
     .range(page * PAGE, page * PAGE + PAGE - 1);
+
+  if (langs.length === 1) query = query.eq("lang", langs[0]);
+  else if (langs.length > 1) query = query.in("lang", langs);
 
   if (sectors.length === 1) query = query.eq("sector", sectors[0]);
   else if (sectors.length > 1) query = query.in("sector", sectors);

@@ -27,6 +27,8 @@ export default function Home() {
   const [selected, setSelected] = useState<string[]>([]);
   // lente ativa (uma de cada vez; null = nenhuma)
   const [theme, setTheme] = useState<string | null>(null);
+  // escopo: 'br' (pt) ou 'mundo' (en+es)
+  const [scope, setScope] = useState<"br" | "mundo">("br");
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [items, setItems] = useState<Item[]>([]);
@@ -71,8 +73,9 @@ export default function Home() {
       const id = ++reqId.current;
       setLoading(true);
       const params = new URLSearchParams({ sector: sectorParam, page: String(nextPage) });
+      params.set("lang", scope === "mundo" ? "en,es" : "pt");
       if (debouncedQ) params.set("q", debouncedQ);
-      if (theme) params.set("theme", theme);
+      if (scope === "br" && theme) params.set("theme", theme);
       try {
         const res = await fetch(`/api/news?${params}`);
         const data = await res.json();
@@ -85,7 +88,7 @@ export default function Home() {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sectorParam, debouncedQ, theme],
+    [sectorParam, debouncedQ, theme, scope],
   );
 
   // recarrega do zero quando muda setor ou busca
@@ -111,6 +114,14 @@ export default function Home() {
   // lente: clicar ativa; clicar de novo desliga
   const toggleTheme = (id: string) => setTheme((cur) => (cur === id ? null : id));
 
+  // troca Brasil/Mundo: limpa lente e busca (lentes sao PT, nao se aplicam ao Mundo)
+  const switchScope = (s: "br" | "mundo") => {
+    if (s === scope) return;
+    setScope(s);
+    setTheme(null);
+    setSelected([]);
+  };
+
   return (
     <>
       <header className="top">
@@ -118,15 +129,34 @@ export default function Home() {
           <div className="brand">
             <h1>TodayBrasil</h1>
             <span>o que está acontecendo agora</span>
+            <div className="scope">
+              <button
+                className={`scopebtn ${scope === "br" ? "on" : ""}`}
+                onClick={() => switchScope("br")}
+              >
+                🇧🇷 Brasil
+              </button>
+              <button
+                className={`scopebtn ${scope === "mundo" ? "on" : ""}`}
+                onClick={() => switchScope("mundo")}
+              >
+                🌎 Mundo
+              </button>
+            </div>
           </div>
           <input
             className="search"
-            placeholder="Buscar no título e no resumo das notícias..."
+            placeholder={
+              scope === "mundo"
+                ? "Buscar nas notícias internacionais..."
+                : "Buscar no título e no resumo das notícias..."
+            }
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
 
-          {/* lentes PRO: temas que cruzam todos os setores */}
+          {/* lentes PRO: so no Brasil (sao por palavra-chave PT) */}
+          {scope === "br" && (
           <div className="lensbar">
             <button
               className={`lensnav left ${atStart ? "hidden" : ""}`}
@@ -159,6 +189,7 @@ export default function Home() {
               ›
             </button>
           </div>
+          )}
 
           {selected.length > 0 && (
             <div className="selinfo">
