@@ -74,7 +74,7 @@ export const THEME_RULES = {
       "montou a empresa", "montou o negocio", "criou a empresa",
       "negocio proprio", "mei ", "microempreend", "investimento anjo",
       "aceleradora", "incubadora", "unicornio", "scale-up", "bootstrap",
-      "comecou do zero", "do zero",
+      "comecou do zero", "construiu do zero",
     ],
     not: [],
   },
@@ -82,7 +82,7 @@ export const THEME_RULES = {
   // Politica & Regulacao
   politica: {
     any: [
-      "governo", "congresso", "senado", "camara dos deputados",
+      "governo", "congresso nacional", "senado", "camara dos deputados",
       "ministerio", "ministro", "ministra", "nova lei", "projeto de lei",
       "medida provisoria", "marco regulatorio", "regulac", "regulamentac",
       "stf ", "supremo tribunal", "reforma tributaria", "reforma administrativa",
@@ -97,24 +97,33 @@ export const THEME_RULES = {
     any: [
       "inteligencia artificial", "ia generativa", "machine learning",
       "aprendizado de maquina", "patente", "p&d", "pesquisa e desenvolvimento",
-      "inovac", "lancamento de", "lancou o", "nova tecnologia", "chatgpt",
+      "inovac", "nova tecnologia", "chatgpt",
       "openai", "anthropic", "modelo de linguagem", "automac", "robotica",
       "biotecnologia", "deep tech", "computacao quantica",
       "realidade virtual", "realidade aumentada",
     ],
-    not: [],
+    // "patente" tambem e posto militar (STM, "perda de patente")
+    not: ["perda de patente", "posto e patente", "patente militar", "na patente de"],
   },
 
   // Investimentos & Mercado
   investimentos: {
     any: [
       "ipo ", "abertura de capital", "captou", "captac", "aporte",
-      "rodada de", "rodada serie", "serie a", "serie b", "serie c",
+      "rodada de investiment", "rodada de financiamento", "rodada de captac",
+      "rodada serie", "rodada seed", "serie a", "serie b", "serie c",
       "valuation", "fundo de investimento", "venture capital",
       "private equity", "levantou r$", "investimento de r$", "b3 ",
-      "ibovespa", "acoes da", "dividendos", "follow-on", "oferta de acoes",
+      "ibovespa", "dividendos", "follow-on", "oferta de acoes",
+      "acoes da", "acoes ordinarias", "acoes preferenciais", "cotacao das acoes",
     ],
-    not: [],
+    // "acoes" tambem = medidas/iniciativas (nao bolsa)
+    not: [
+      "plano de acoes", "acoes afirmativas", "acoes de combate", "acoes sociais",
+      "acoes integradas", "acoes judiciais", "acoes coletivas", "acoes educativas",
+      "acoes de prevencao", "acoes humanitarias", "acoes de marketing",
+      "acoes da campanha", "acoes da policia", "acoes da prefeitura",
+    ],
   },
 };
 
