@@ -1,8 +1,11 @@
 name: Ingest news
 
 on:
+  # Horarios em UTC. Comercial = seg-sex 08h-18h BRT = 11h-21h UTC.
   schedule:
-    - cron: "*/10 * * * *" # a cada 10 minutos
+    - cron: "*/10 11-21 * * 1-5"   # comercial: a cada 10 min (seg-sex, 08h-18h BRT)
+    - cron: "0 0-10,22,23 * * 1-5" # dias uteis fora do comercial: de hora em hora
+    - cron: "0 * * * 0,6"          # fins de semana: de hora em hora
   workflow_dispatch: {} # permite rodar na mao pelo painel do GitHub
 
 jobs:
