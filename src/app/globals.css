@@ -84,6 +84,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--accent);
 }
 /* lentes PRO: temas que cruzam setores (logo abaixo da busca) */
+.lensbar { position: relative; }
 .lenses {
   display: flex;
   align-items: center;
@@ -91,8 +92,39 @@ a { color: inherit; text-decoration: none; }
   overflow-x: auto;
   padding: 12px 0 4px;
   scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 .lenses::-webkit-scrollbar { display: none; }
+
+/* setas de navegacao (aparecem so quando ha corte) */
+.lensnav {
+  position: absolute;
+  top: 12px;
+  bottom: 4px;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  z-index: 3;
+  transition: opacity 0.15s;
+}
+.lensnav.left {
+  left: 0;
+  justify-content: flex-start;
+  background: linear-gradient(90deg, var(--bg) 45%, transparent);
+}
+.lensnav.right {
+  right: 0;
+  justify-content: flex-end;
+  background: linear-gradient(270deg, var(--bg) 45%, transparent);
+}
+.lensnav:hover { color: var(--gold); }
+.lensnav.hidden { opacity: 0; pointer-events: none; }
 .lenslabel {
   flex: 0 0 auto;
   font-size: 11px;

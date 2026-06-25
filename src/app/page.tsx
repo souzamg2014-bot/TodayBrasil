@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import { getSector } from "@/lib/sectors";
 import { THEMES, getTheme } from "@/lib/themes";
 import { timeAgo } from "@/lib/time";
@@ -35,6 +35,28 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
   const reqId = useRef(0);
+
+  // rolagem horizontal das lentes (setas + roda do mouse)
+  const lensesRef = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+  const updateArrows = useCallback(() => {
+    const el = lensesRef.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft <= 1);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
+  }, []);
+  useEffect(() => {
+    updateArrows();
+    window.addEventListener("resize", updateArrows);
+    return () => window.removeEventListener("resize", updateArrows);
+  }, [updateArrows]);
+  const nudgeLenses = (dir: number) =>
+    lensesRef.current?.scrollBy({ left: dir * 260, behavior: "smooth" });
+  const onLensesWheel = (e: WheelEvent<HTMLDivElement>) => {
+    const el = lensesRef.current;
+    if (el && Math.abs(e.deltaY) > Math.abs(e.deltaX)) el.scrollLeft += e.deltaY;
+  };
 
   // debounce da busca
   useEffect(() => {
@@ -105,21 +127,37 @@ export default function Home() {
           />
 
           {/* lentes PRO: temas que cruzam todos os setores */}
-          <div className="lenses">
-            <span className="lenslabel">
-              Lentes <em>PRO</em>
-            </span>
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                className={`lens ${theme === t.id ? "active" : ""}`}
-                title={t.blurb}
-                onClick={() => toggleTheme(t.id)}
-              >
-                <span className="lemoji">{t.emoji}</span>
-                {t.label}
-              </button>
-            ))}
+          <div className="lensbar">
+            <button
+              className={`lensnav left ${atStart ? "hidden" : ""}`}
+              aria-label="Lentes anteriores"
+              onClick={() => nudgeLenses(-1)}
+            >
+              ‹
+            </button>
+            <div className="lenses" ref={lensesRef} onScroll={updateArrows} onWheel={onLensesWheel}>
+              <span className="lenslabel">
+                Lentes <em>PRO</em>
+              </span>
+              {THEMES.map((t) => (
+                <button
+                  key={t.id}
+                  className={`lens ${theme === t.id ? "active" : ""}`}
+                  title={t.blurb}
+                  onClick={() => toggleTheme(t.id)}
+                >
+                  <span className="lemoji">{t.emoji}</span>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <button
+              className={`lensnav right ${atEnd ? "hidden" : ""}`}
+              aria-label="Próximas lentes"
+              onClick={() => nudgeLenses(1)}
+            >
+              ›
+            </button>
           </div>
 
           {selected.length > 0 && (
