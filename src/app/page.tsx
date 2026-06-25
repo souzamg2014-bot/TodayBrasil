@@ -155,7 +155,7 @@ export default function Home() {
 
         <aside className="side">
           <section className="panel">
-            <h4>🔥 Setores em alta</h4>
+            <h4>📊 Setores em alta</h4>
             <p className="hint">últimos 7 dias · clique pra filtrar</p>
             <ul className="rank">
               {(stats?.sectors ?? []).map((s) => {
@@ -181,7 +181,7 @@ export default function Home() {
           </section>
 
           <section className="panel">
-            <h4>📈 Termos em alta</h4>
+            <h4>🔥 Em alta</h4>
             <p className="hint">aparecem em X notícias (3 dias)</p>
             <div className="cloud">
               {(stats?.trending ?? []).map((t) => (
