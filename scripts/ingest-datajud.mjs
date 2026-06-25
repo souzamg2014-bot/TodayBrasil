@@ -71,6 +71,54 @@ function dataBR(iso) {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+const titleCase = (s) =>
+  (s || "").toLowerCase().replace(/\s+/g, " ").trim()
+    .split(" ").map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(" ");
+
+// marcadores de pessoa JURIDICA (so empresas; ignoramos pessoa fisica)
+const COMPANY_RE = /(\bS[.\/ ]?A\.?\b|\bLTDA\b|EIRELI|\bEPP\b|\bME\b|MASSA FALIDA|EM RECUPERA|COMPANHIA|\bCIA\b|PARTICIPA|INCORPORAD|EMPREEND|IND[UÚ]STRIA|COM[ÉE]RCIO|AGROPECU|TRANSPORT|CONSTRU|HOLDING|\bGRUPO\b)/i;
+
+// DJEN / Comunica (CNJ): diario de justica eletronico nacional. Publico, traz
+// as partes de forma estruturada (destinatarios[].nome).
+async function fetchParties(procMasked) {
+  try {
+    const r = await fetch(
+      `https://comunicaapi.pje.jus.br/api/v1/comunicacao?numeroProcesso=${encodeURIComponent(procMasked)}`,
+      { headers: { Accept: "application/json" } },
+    );
+    if (!r.ok) return [];
+    const j = await r.json();
+    const names = [];
+    for (const it of j.items || [])
+      for (const d of it.destinatarios || []) if (d && d.nome) names.push(String(d.nome));
+    return names;
+  } catch {
+    return [];
+  }
+}
+
+function cleanCompany(n) {
+  let s = n.replace(/\s+/g, " ").trim();
+  // tira sufixos de situacao (em recuperacao, falido, massa falida)
+  s = s.replace(/\s*-?\s*(EM RECUPERA[ÇC][ÃA]O.*|FALID[OA]|MASSA FALIDA.*)$/i, "").trim();
+  s = s.replace(/^MASSA FALIDA DE\s+/i, "").trim();
+  s = titleCase(s);
+  // conectores em minuscula (mas nunca a 1a palavra)
+  s = s.replace(/(?!^)\b(De|Da|Do|Dos|Das|E)\b/g, (m) => m.toLowerCase());
+  // normaliza formas societarias
+  s = s.replace(/\bS[.\s]?A\.?\b/gi, "S.A.").replace(/\bS\/A\b/gi, "S.A.")
+       .replace(/\bMe\b/g, "ME").replace(/\bEpp\b/g, "EPP").replace(/\bEireli\b/gi, "EIRELI");
+  s = s.replace(/\.{2,}/g, ".").trim(); // "S.A.." -> "S.A."
+  return s;
+}
+
+// escolhe o 1o destinatario que parece pessoa juridica
+function pickCompany(names) {
+  const uniq = [...new Set(names.map((n) => n.replace(/\s+/g, " ").trim()))];
+  const comp = uniq.find((n) => COMPANY_RE.test(n));
+  return comp ? cleanCompany(comp) : null;
+}
+
 async function searchTribunal(uf) {
   const url = `https://api-publica.datajud.cnj.jus.br/api_publica_tj${uf}/_search`;
   const body = {
@@ -102,13 +150,14 @@ function toItem(src) {
   const orgao = src.orgaoJulgador?.nome || "";
   const trib = src.tribunal || "";
   const assuntos = (src.assuntos || []).map((a) => a.nome).filter(Boolean).slice(0, 3);
-  const titleBase = orgao ? `${classe}: ${orgao}` : classe;
   return {
     lang: "pt",
     sector: "geral",
     themes: ["falimentar"],
-    title: titleBase.slice(0, 200),
+    // fallback; o nome da empresa entra via DJEN no enriquecimento (main)
+    title: `${classe} (${trib})`.slice(0, 200),
     summary: [
+      orgao ? `${orgao}.` : "",
       `Processo ${proc} ajuizado em ${dataBR(ajuiz)}.`,
       assuntos.length ? `Assuntos: ${assuntos.join(", ")}.` : "",
       `Fonte: DataJud/CNJ (${trib}).`,
@@ -118,6 +167,8 @@ function toItem(src) {
     url: `https://www.google.com/search?q=${encodeURIComponent('"' + proc + '"')}`,
     image_url: null,
     published_at: ajuiz,
+    _proc: proc,
+    _classe: classe,
   };
 }
 
@@ -144,17 +195,37 @@ async function main() {
   // dedupe por url dentro desta rodada
   const uniq = [...new Map(rows.map((r) => [r.url, r])).values()];
 
+  // enriquece com o nome da empresa (pessoa juridica) via DJEN/Comunica
+  let enriched = 0;
+  const CONC = 6;
+  for (let i = 0; i < uniq.length; i += CONC) {
+    await Promise.all(
+      uniq.slice(i, i + CONC).map(async (it) => {
+        const company = pickCompany(await fetchParties(it._proc));
+        if (company) {
+          it.title = `${it._classe}: ${company}`.slice(0, 200);
+          it.summary = `${company}. ${it.summary}`.slice(0, 600);
+          enriched++;
+        }
+      }),
+    );
+  }
+  for (const it of uniq) { delete it._proc; delete it._classe; }
+  console.log(`[DJEN] ${enriched}/${uniq.length} itens com nome de empresa`);
+
   if (DRY) {
     console.log(`\n[DRY] ${uniq.length} itens (amostra):`);
-    for (const r of uniq.slice(0, 5)) console.log(" •", r.title, "|", r.source, "|", r.published_at);
+    for (const r of uniq.slice(0, 8)) console.log(" •", r.title, "|", r.source);
     return;
   }
 
   for (let i = 0; i < uniq.length; i += 500) {
     const chunk = uniq.slice(i, i + 500);
+    // sem ignoreDuplicates: re-rodar ATUALIZA o titulo/resumo quando o DJEN
+    // passa a ter o nome da empresa de um processo ja gravado.
     const { error } = await supabase
       .from("news_articles")
-      .upsert(chunk, { onConflict: "url", ignoreDuplicates: true });
+      .upsert(chunk, { onConflict: "url" });
     if (error) { console.error("erro upsert:", error.message); process.exit(1); }
     total += chunk.length;
   }
