@@ -11,6 +11,8 @@
     "ingest": "node scripts/ingest-news.mjs",
     "ingest:cvm": "node scripts/ingest-cvm.mjs",
     "ingest:datajud": "node scripts/ingest-datajud.mjs",
+    "ingest:caged": "node scripts/ingest-caged.mjs",
+    "ingest:ibama": "node scripts/ingest-ibama.mjs",
     "backfill:themes": "node scripts/backfill-themes.mjs"
   },
   "dependencies": {
