@@ -12,24 +12,41 @@ const PAGE = 24;
 
 export async function GET(request: Request) {
   const sp = new URL(request.url).searchParams;
-  const sector = sp.get("sector");
+  // setor pode vir como lista: ?sector=tecnologia-software,industria
+  const sectorsRaw = (sp.get("sector") ?? "all")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const sectors = sectorsRaw.filter((s) => s !== "all");
   const q = (sp.get("q") ?? "").trim();
   const lang = sp.get("lang") ?? "pt";
   const page = Math.max(0, parseInt(sp.get("page") ?? "0", 10) || 0);
 
   let query = supabase
     .from("news_articles")
-    .select("id, title, summary, source, url, image_url, sector, published_at")
+    .select("id, title, summary, source, url, sector, published_at")
     .eq("lang", lang)
     .order("published_at", { ascending: false, nullsFirst: false })
     .range(page * PAGE, page * PAGE + PAGE - 1);
 
-  if (sector && sector !== "all") query = query.eq("sector", sector);
+  if (sectors.length === 1) query = query.eq("sector", sectors[0]);
+  else if (sectors.length > 1) query = query.in("sector", sectors);
+  // busca full-text no titulo + resumo (config portuguese, com stemming)
   if (q) query = query.textSearch("fts", q, { type: "websearch", config: "portuguese" });
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const items = data ?? [];
+
+  // registra a busca (so na 1a pagina, termos com >=3 chars) para o termometro.
+  // best-effort: nao bloqueia nem derruba a resposta se falhar.
+  if (q.length >= 3 && page === 0) {
+    supabase
+      .from("search_log")
+      .insert({ q: q.slice(0, 120), results_count: items.length })
+      .then(() => {}, () => {});
+  }
+
   return NextResponse.json({ items, hasMore: items.length === PAGE, page });
 }

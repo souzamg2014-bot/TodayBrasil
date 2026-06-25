@@ -78,8 +78,24 @@ function classify(text) {
   return best;
 }
 
+// decodifica as entidades mais comuns ANTES de tirar tags. Google News manda
+// a descricao com HTML escapado (&lt;a href...&gt;); sem decodificar, sobra
+// "href"/"target" como texto e suja resumo + termos em alta.
+function decodeEntities(s = "") {
+  return s
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&");
+}
 function strip(s = "") {
-  return s.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").replace(/&[a-z#0-9]+;/g, " ").trim();
+  let t = s.replace(/<!\[CDATA\[|\]\]>/g, "");
+  t = decodeEntities(t); // &lt;a href...&gt; -> <a href...>
+  t = t.replace(/<[^>]+>/g, " "); // agora remove as tags reais
+  t = t.replace(/&[a-z#0-9]+;/gi, " "); // entidades que sobraram
+  return t.replace(/\s+/g, " ").trim();
 }
 function pick(block, tag) {
   const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "i"));

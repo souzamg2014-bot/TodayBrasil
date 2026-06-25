@@ -10,19 +10,26 @@ type Item = {
   summary: string | null;
   source: string | null;
   url: string | null;
-  image_url: string | null;
   sector: string;
   published_at: string | null;
 };
 
+type Stats = {
+  sectors: { sector: string; n: number }[];
+  topSearches: { q: string; hits: number }[];
+  trending: { term: string; ndoc: number }[];
+};
+
 export default function Home() {
-  const [sector, setSector] = useState("all");
+  // multi-selecao de setores (vazio = tudo)
+  const [selected, setSelected] = useState<string[]>([]);
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<Stats | null>(null);
   const reqId = useRef(0);
 
   // debounce da busca
@@ -31,11 +38,13 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [q]);
 
+  const sectorParam = selected.length ? selected.join(",") : "all";
+
   const load = useCallback(
     async (nextPage: number, replace: boolean) => {
       const id = ++reqId.current;
       setLoading(true);
-      const params = new URLSearchParams({ sector, page: String(nextPage) });
+      const params = new URLSearchParams({ sector: sectorParam, page: String(nextPage) });
       if (debouncedQ) params.set("q", debouncedQ);
       try {
         const res = await fetch(`/api/news?${params}`);
@@ -49,13 +58,28 @@ export default function Home() {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sector, debouncedQ],
+    [sectorParam, debouncedQ],
   );
 
   // recarrega do zero quando muda setor ou busca
   useEffect(() => {
     load(0, true);
   }, [load]);
+
+  // termometro (carrega uma vez; recarrega quando o usuario faz uma busca nova)
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {});
+  }, [debouncedQ]);
+
+  const toggleSector = (id: string) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    );
+
+  const isOn = (id: string) => selected.includes(id);
 
   return (
     <>
@@ -67,77 +91,142 @@ export default function Home() {
           </div>
           <input
             className="search"
-            placeholder="Buscar por palavra-chave ou tema..."
+            placeholder="Buscar no título e no resumo das notícias..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <div className="chips">
             <button
-              className={`chip ${sector === "all" ? "active" : ""}`}
-              onClick={() => setSector("all")}
+              className={`chip ${selected.length === 0 ? "active" : ""}`}
+              onClick={() => setSelected([])}
             >
               ✨ Tudo
             </button>
             {SECTORS.map((s) => (
               <button
                 key={s.id}
-                className={`chip ${sector === s.id ? "active" : ""}`}
-                onClick={() => setSector(s.id)}
+                className={`chip ${isOn(s.id) ? "active" : ""}`}
+                onClick={() => toggleSector(s.id)}
               >
                 {s.emoji} {s.label}
               </button>
             ))}
           </div>
+          {selected.length > 0 && (
+            <div className="selinfo">
+              {selected.length} {selected.length === 1 ? "setor" : "setores"} selecionado
+              {selected.length === 1 ? "" : "s"}
+              <button className="clear" onClick={() => setSelected([])}>
+                limpar
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="shell">
-        {items.length === 0 && loading ? (
-          <div className="state">Carregando...</div>
-        ) : items.length === 0 ? (
-          <div className="state">Nenhuma notícia encontrada. Tente outro filtro.</div>
-        ) : (
-          <>
-            <div className="grid">
-              {items.map((it) => (
-                <a
-                  key={it.id}
-                  className="card"
-                  href={it.url ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {it.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img className="thumb" src={it.image_url} alt="" loading="lazy" />
-                  )}
-                  <div className="body">
-                    <div className="meta">
-                      <span>{it.source}</span>
-                      {it.published_at && (
-                        <>
-                          <span className="dot">•</span>
-                          <span>{timeAgo(it.published_at)}</span>
-                        </>
-                      )}
-                    </div>
-                    <h3>{it.title}</h3>
-                    {it.summary && <p>{it.summary.slice(0, 160)}</p>}
-                    <span className="tag">
-                      {getSector(it.sector)?.emoji} {getSector(it.sector)?.label ?? it.sector}
-                    </span>
-                  </div>
-                </a>
+      <div className="shell layout">
+        <main className="feed">
+          {items.length === 0 && loading ? (
+            <div className="state">Carregando...</div>
+          ) : items.length === 0 ? (
+            <div className="state">Nenhuma notícia encontrada. Tente outro filtro.</div>
+          ) : (
+            <>
+              <ul className="list">
+                {items.map((it) => (
+                  <li key={it.id}>
+                    <a
+                      className="row"
+                      href={it.url ?? "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div className="rmeta">
+                        <span className="rsource">{it.source}</span>
+                        {it.published_at && (
+                          <>
+                            <span className="dot">•</span>
+                            <span>{timeAgo(it.published_at)}</span>
+                          </>
+                        )}
+                        <span className="rtag">
+                          {getSector(it.sector)?.emoji} {getSector(it.sector)?.label ?? it.sector}
+                        </span>
+                      </div>
+                      <h3>{it.title}</h3>
+                      {it.summary && <p>{it.summary.slice(0, 220)}</p>}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {hasMore && (
+                <button className="more" disabled={loading} onClick={() => load(page + 1, false)}>
+                  {loading ? "Carregando..." : "Carregar mais"}
+                </button>
+              )}
+            </>
+          )}
+        </main>
+
+        <aside className="side">
+          <section className="panel">
+            <h4>🔥 Setores em alta</h4>
+            <p className="hint">últimos 7 dias · clique pra filtrar</p>
+            <ul className="rank">
+              {(stats?.sectors ?? []).map((s) => {
+                const meta = getSector(s.sector);
+                const max = stats?.sectors?.[0]?.n || 1;
+                return (
+                  <li key={s.sector}>
+                    <button
+                      className={`rankrow ${isOn(s.sector) ? "on" : ""}`}
+                      onClick={() => toggleSector(s.sector)}
+                    >
+                      <span className="rl">
+                        {meta?.emoji} {meta?.label ?? s.sector}
+                      </span>
+                      <span className="rn">{s.n}</span>
+                      <span className="bar" style={{ width: `${(s.n / max) * 100}%` }} />
+                    </button>
+                  </li>
+                );
+              })}
+              {!stats && <li className="hint">carregando...</li>}
+            </ul>
+          </section>
+
+          <section className="panel">
+            <h4>📈 Termos em alta</h4>
+            <p className="hint">aparecem em X notícias (3 dias)</p>
+            <div className="cloud">
+              {(stats?.trending ?? []).map((t) => (
+                <button key={t.term} className="termchip" onClick={() => setQ(t.term)}>
+                  {t.term} <em>{t.ndoc}</em>
+                </button>
               ))}
+              {stats && stats.trending.length === 0 && <span className="hint">sem dados ainda</span>}
             </div>
-            {hasMore && (
-              <button className="more" disabled={loading} onClick={() => load(page + 1, false)}>
-                {loading ? "Carregando..." : "Carregar mais"}
-              </button>
-            )}
-          </>
-        )}
-      </main>
+          </section>
+
+          <section className="panel">
+            <h4>🔎 Mais buscados</h4>
+            <p className="hint">o que as pessoas procuram</p>
+            <ul className="rank">
+              {(stats?.topSearches ?? []).map((s) => (
+                <li key={s.q}>
+                  <button className="rankrow" onClick={() => setQ(s.q)}>
+                    <span className="rl">{s.q}</span>
+                    <span className="rn">{s.hits}</span>
+                  </button>
+                </li>
+              ))}
+              {stats && stats.topSearches.length === 0 && (
+                <li className="hint">ainda ninguém buscou. seja o primeiro 👆</li>
+              )}
+            </ul>
+          </section>
+        </aside>
+      </div>
     </>
   );
 }
