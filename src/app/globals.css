@@ -7,6 +7,8 @@
   --muted: #94a0ad;
   --accent: #4a9eff;
   --accent-soft: rgba(74, 158, 255, 0.14);
+  --gold: #e6b450;
+  --gold-soft: rgba(230, 180, 80, 0.14);
   --radius: 14px;
 }
 
@@ -81,6 +83,62 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--accent);
   color: var(--accent);
 }
+/* lentes PRO: temas que cruzam setores (logo abaixo da busca) */
+.lenses {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0 4px;
+  scrollbar-width: none;
+}
+.lenses::-webkit-scrollbar { display: none; }
+.lenslabel {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lenslabel em {
+  font-style: normal;
+  background: var(--gold-soft);
+  color: var(--gold);
+  border: 1px solid rgba(230, 180, 80, 0.4);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.lens {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(180deg, rgba(230, 180, 80, 0.06), transparent);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s;
+}
+.lens:hover { border-color: rgba(230, 180, 80, 0.6); }
+.lens .lemoji { font-size: 13px; }
+.lens.active {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(230, 180, 80, 0.25);
+}
+
 .selinfo {
   display: flex;
   align-items: center;
@@ -122,6 +180,15 @@ a { color: inherit; text-decoration: none; }
 .rmeta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
 .rmeta .dot { opacity: 0.5; }
 .rsource { font-weight: 600; color: #b6c0cc; }
+.ltag {
+  background: var(--gold-soft);
+  border: 1px solid rgba(230, 180, 80, 0.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+}
 .rtag {
   margin-left: auto;
   background: var(--panel-2);

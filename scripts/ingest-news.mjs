@@ -15,6 +15,7 @@
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { SOURCES } from "./sources.pt.mjs";
+import { classifyThemes } from "./themes.mjs";
 
 // idioma desta rodada (fase 1 = pt). No futuro: rodar o robo por lang.
 const LANG = process.env.INGEST_LANG || "pt";
@@ -235,9 +236,12 @@ function parseEntries(xml, host, hintSector = "geral") {
     // classifica pelo texto; se nao achou setor, usa o setor da fonte
     let sector = classify(`${title} ${desc}`);
     if (sector === "geral") sector = hintSector;
+    // lentes (temas que cruzam setores): 0, 1 ou varias por noticia
+    const themes = classifyThemes(`${title} ${desc}`);
     return {
       lang: LANG,
       sector,
+      themes,
       title,
       summary: desc.slice(0, 600),
       source: host,
@@ -274,6 +278,7 @@ async function main() {
   let fail = 0;
   let viaGoogle = 0;
   const bySector = {};
+  const byTheme = {};
   const failed = [];
   const CONC = 6;
 
@@ -301,7 +306,10 @@ async function main() {
           }
           total += articles.length;
           ok++;
-          for (const a of articles) bySector[a.sector] = (bySector[a.sector] || 0) + 1;
+          for (const a of articles) {
+            bySector[a.sector] = (bySector[a.sector] || 0) + 1;
+            for (const th of a.themes) byTheme[th] = (byTheme[th] || 0) + 1;
+          }
           console.log(`  ${feed.url}: ${articles.length} itens${via === "google" ? " [google]" : ""}`);
         } catch (e) {
           console.error(`  falhou ${feed.url}: ${e.message}`);
@@ -315,6 +323,7 @@ async function main() {
   console.log(`\nPronto. ${ok} feeds ok (${viaGoogle} via Google News), ${fail} falharam, total de fontes: ${feeds.length}.`);
   console.log(`${total} noticias processadas (duplicadas ignoradas).`);
   console.log("Por setor:", bySector);
+  console.log("Por lente:", byTheme);
   if (failed.length) {
     console.log(`\nSem feed (${failed.length}):`);
     for (const u of failed) console.log(`  - ${u}`);

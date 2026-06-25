@@ -18,19 +18,26 @@ export async function GET(request: Request) {
     .map((s) => s.trim())
     .filter(Boolean);
   const sectors = sectorsRaw.filter((s) => s !== "all");
+  // lentes (temas que cruzam setores): ?theme=ma  ou  ?theme=ma,investimentos
+  const themes = (sp.get("theme") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const q = (sp.get("q") ?? "").trim();
   const lang = sp.get("lang") ?? "pt";
   const page = Math.max(0, parseInt(sp.get("page") ?? "0", 10) || 0);
 
   let query = supabase
     .from("news_articles")
-    .select("id, title, summary, source, url, sector, published_at")
+    .select("id, title, summary, source, url, sector, themes, published_at")
     .eq("lang", lang)
     .order("published_at", { ascending: false, nullsFirst: false })
     .range(page * PAGE, page * PAGE + PAGE - 1);
 
   if (sectors.length === 1) query = query.eq("sector", sectors[0]);
   else if (sectors.length > 1) query = query.in("sector", sectors);
+  // lente: noticia precisa ter ao menos uma das lentes pedidas (overlap &&)
+  if (themes.length) query = query.overlaps("themes", themes);
   // busca full-text no titulo + resumo (config portuguese, com stemming)
   if (q) query = query.textSearch("fts", q, { type: "websearch", config: "portuguese" });
 

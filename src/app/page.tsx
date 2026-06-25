@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getSector } from "@/lib/sectors";
+import { THEMES, getTheme } from "@/lib/themes";
 import { timeAgo } from "@/lib/time";
 
 type Item = {
@@ -11,6 +12,7 @@ type Item = {
   source: string | null;
   url: string | null;
   sector: string;
+  themes: string[] | null;
   published_at: string | null;
 };
 
@@ -23,6 +25,8 @@ type Stats = {
 export default function Home() {
   // multi-selecao de setores (vazio = tudo)
   const [selected, setSelected] = useState<string[]>([]);
+  // lente ativa (uma de cada vez; null = nenhuma)
+  const [theme, setTheme] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [items, setItems] = useState<Item[]>([]);
@@ -46,6 +50,7 @@ export default function Home() {
       setLoading(true);
       const params = new URLSearchParams({ sector: sectorParam, page: String(nextPage) });
       if (debouncedQ) params.set("q", debouncedQ);
+      if (theme) params.set("theme", theme);
       try {
         const res = await fetch(`/api/news?${params}`);
         const data = await res.json();
@@ -58,7 +63,7 @@ export default function Home() {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sectorParam, debouncedQ],
+    [sectorParam, debouncedQ, theme],
   );
 
   // recarrega do zero quando muda setor ou busca
@@ -81,6 +86,9 @@ export default function Home() {
 
   const isOn = (id: string) => selected.includes(id);
 
+  // lente: clicar ativa; clicar de novo desliga
+  const toggleTheme = (id: string) => setTheme((cur) => (cur === id ? null : id));
+
   return (
     <>
       <header className="top">
@@ -95,6 +103,25 @@ export default function Home() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
+
+          {/* lentes PRO: temas que cruzam todos os setores */}
+          <div className="lenses">
+            <span className="lenslabel">
+              Lentes <em>PRO</em>
+            </span>
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                className={`lens ${theme === t.id ? "active" : ""}`}
+                title={t.blurb}
+                onClick={() => toggleTheme(t.id)}
+              >
+                <span className="lemoji">{t.emoji}</span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
           {selected.length > 0 && (
             <div className="selinfo">
               Filtrando:{" "}
@@ -134,6 +161,15 @@ export default function Home() {
                             <span>{timeAgo(it.published_at)}</span>
                           </>
                         )}
+                        {(it.themes ?? []).map((th) => {
+                          const lm = getTheme(th);
+                          if (!lm) return null;
+                          return (
+                            <span key={th} className="ltag">
+                              {lm.emoji} {lm.label}
+                            </span>
+                          );
+                        })}
                         <span className="rtag">
                           {getSector(it.sector)?.emoji} {getSector(it.sector)?.label ?? it.sector}
                         </span>
