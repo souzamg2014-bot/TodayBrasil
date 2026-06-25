@@ -1,0 +1,20 @@
+name: Ingest IBAMA (ESG)
+
+on:
+  schedule:
+    - cron: "0 13 * * 1" # semanal, segunda 13:00 UTC (arquivo de ~112MB, muda pouco)
+  workflow_dispatch: {}
+
+jobs:
+  ingest-ibama:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: node scripts/ingest-ibama.mjs
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

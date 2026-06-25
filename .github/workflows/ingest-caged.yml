@@ -1,0 +1,20 @@
+name: Ingest CAGED (Mercado de Trabalho)
+
+on:
+  schedule:
+    - cron: "0 12 * * 1" # semanal, segunda 12:00 UTC (dado e mensal)
+  workflow_dispatch: {}
+
+jobs:
+  ingest-caged:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: node scripts/ingest-caged.mjs
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
