@@ -12,7 +12,7 @@ export async function GET() {
   const [sectors, searches, terms] = await Promise.all([
     supabase.rpc("sector_counts", { days: 7 }),
     supabase.rpc("top_searches", { days: 7, lim: 10 }),
-    supabase.rpc("trending_terms", { days: 3, lim: 15 }),
+    supabase.rpc("trending_terms", { days: 3, lim: 18 }),
   ]);
 
   return NextResponse.json(
