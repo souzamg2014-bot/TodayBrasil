@@ -48,6 +48,7 @@ export default function Home() {
   const [plan, setPlan] = useState<Plan>("free");
   const [planExp, setPlanExp] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [atHome, setAtHome] = useState(false); // logo -> volta pra porta (home)
   const paid = isPaid(plan, planExp);
 
   useEffect(() => {
@@ -191,6 +192,8 @@ export default function Home() {
   // gate: tela preta enquanto verifica; porta misteriosa se deslogado
   if (checking) return <div className="bootscreen" />;
   if (!session) return <Entrance />;
+  // home (porta) com usuario logado: ENTRAR entra direto no feed
+  if (atHome) return <Entrance loggedIn onEnter={() => setAtHome(false)} />;
 
   return (
     <>
@@ -212,7 +215,9 @@ export default function Home() {
             </button>
           </div>
           <div className="brand">
-            <h1>TodayBrasil</h1>
+            <h1 className="logobtn" onClick={() => setAtHome(true)} title="Início">
+              TodayBrasil
+            </h1>
             <span>o que está acontecendo agora</span>
             <div className="scope">
               <button

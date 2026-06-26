@@ -203,6 +203,8 @@ a { color: inherit; text-decoration: none; }
 .top .shell { padding-bottom: 0; }
 .brand { display: flex; align-items: baseline; gap: 10px; }
 .brand h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.logobtn { cursor: pointer; }
+.logobtn:hover { opacity: 0.8; }
 .brand span { color: var(--muted); font-size: 13px; }
 
 /* toggle Brasil / Mundo */

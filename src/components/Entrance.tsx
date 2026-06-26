@@ -5,7 +5,13 @@ import { supabase } from "@/lib/supabase";
 
 // Tela de entrada: porta (logo + slogan + ENTRAR) -> abre -> login.
 // Ao autenticar, o onAuthStateChange no page.tsx troca pro feed.
-export default function Entrance() {
+export default function Entrance({
+  loggedIn = false,
+  onEnter,
+}: {
+  loggedIn?: boolean;     // ja autenticado: ENTRAR vai direto pro feed
+  onEnter?: () => void;
+}) {
   const [view, setView] = useState<"door" | "opening" | "login">("door");
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [email, setEmail] = useState("");
@@ -16,7 +22,10 @@ export default function Entrance() {
 
   const openDoor = () => {
     setView("opening");
-    setTimeout(() => setView("login"), 900); // dura o mesmo da animacao CSS
+    setTimeout(() => {
+      if (loggedIn) onEnter?.();   // logado: entra direto
+      else setView("login");
+    }, 900); // dura o mesmo da animacao CSS
   };
 
   async function submit(e: React.FormEvent) {
