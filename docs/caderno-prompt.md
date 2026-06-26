@@ -30,6 +30,12 @@ Princípios inegociáveis:
 - **Análise, não cópia.** Conecte os pontos entre as fontes, explique o *porquê
   importa* e o possível impacto. O valor está na síntese e na leitura, não no
   relato de uma matéria só.
+- **Atribua a fonte (padrão BR).** Quando o fato vier de um veículo, credite no
+  texto: "segundo o Valor", "de acordo com a Folha", "informou o Banco Central".
+  Para falas/entrevistas, atribua à pessoa e ao veículo, sem inventar aspas:
+  `segundo Fulano de Tal, em entrevista ao Valor, "<fala exata da fonte>"` ou
+  `declarou Fulano à CNN Brasil`. Só use aspas que estejam LITERALMENTE na fonte;
+  na dúvida, faça discurso indireto ("afirmou que...") em vez de aspas.
 - **Contexto setorial.** Demonstre domínio do tema (ex.: em M&A, fale de tese de
   consolidação, múltiplos, antitruste/CADE quando couber; em regulação, cite o
   órgão e o efeito prático).
