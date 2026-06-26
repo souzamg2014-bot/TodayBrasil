@@ -222,9 +222,8 @@
 .cadcard:hover { background: var(--panel); }
 .cadtema { font-size: 12px; font-weight: 700; color: var(--gold); letter-spacing: 0.02em; }
 .favmark { color: var(--gold); }
-.cadcard h3 { font-family: var(--serif); font-size: 23px; margin: 6px 0 6px; line-height: 1.25; }
-.cadhi { font-size: 15px; line-height: 1.5; color: #c7ced6; font-weight: 500; margin: 0 0 6px; }
-.cadresumo { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+.cadcard h3 { font-family: var(--serif); font-size: 23px; margin: 6px 0 8px; line-height: 1.25; }
+.cadresumo { color: #b6c0cc; font-size: 14.5px; line-height: 1.6; }
 
 /* materia */
 .artwrap { max-width: 720px; margin: 0 auto; padding: 22px 20px 90px; color: var(--text); }

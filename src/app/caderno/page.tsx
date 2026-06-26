@@ -76,7 +76,6 @@ export default function Caderno() {
                       {favs.has(a.id) && <span className="favmark"> ★</span>}
                     </span>
                     <h3>{a.titulo}</h3>
-                    {a.highlight && <p className="cadhi">{a.highlight}</p>}
                     {a.resumo && <p className="cadresumo">{a.resumo}</p>}
                   </a>
                 </li>
