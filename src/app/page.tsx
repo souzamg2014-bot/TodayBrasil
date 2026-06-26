@@ -47,6 +47,7 @@ export default function Home() {
   const [checking, setChecking] = useState(true);
   const [plan, setPlan] = useState<Plan>("free");
   const [planExp, setPlanExp] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const paid = isPaid(plan, planExp);
 
   useEffect(() => {
@@ -65,7 +66,7 @@ export default function Home() {
 
   // carrega o plano do perfil ao logar
   useEffect(() => {
-    if (!session) { setPlan("free"); setPlanExp(null); return; }
+    if (!session) { setPlan("free"); setPlanExp(null); setIsAdmin(false); return; }
     supabase
       .from("profiles")
       .select("plan, plan_expires_at")
@@ -74,6 +75,13 @@ export default function Home() {
       .then(({ data }) => {
         if (data) { setPlan((data.plan as Plan) ?? "free"); setPlanExp(data.plan_expires_at ?? null); }
       });
+    // is_admin separado (tolera coluna ainda nao existir antes do 10_admin.sql)
+    supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", session.user.id)
+      .single()
+      .then(({ data }) => setIsAdmin(!!data?.is_admin), () => setIsAdmin(false));
   }, [session]);
 
   async function goCheckout() {
@@ -130,7 +138,9 @@ export default function Home() {
       if (debouncedQ && paid) params.set("q", debouncedQ); // busca: so Pro
       if (scope === "br" && theme) params.set("theme", theme);
       try {
-        const res = await fetch(`/api/news?${params}`);
+        const res = await fetch(`/api/news?${params}`, {
+          headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+        });
         const data = await res.json();
         if (id !== reqId.current) return; // resposta obsoleta
         let next: Item[] = data.items ?? [];
@@ -143,7 +153,7 @@ export default function Home() {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sectorParam, debouncedQ, theme, scope, paid],
+    [sectorParam, debouncedQ, theme, scope, paid, session],
   );
 
   // recarrega do zero quando muda setor/busca (so logado)
@@ -154,7 +164,7 @@ export default function Home() {
   // termometro (so logado; recarrega quando o usuario faz uma busca nova)
   useEffect(() => {
     if (!session) return;
-    fetch("/api/stats")
+    fetch("/api/stats", { headers: { Authorization: `Bearer ${session.access_token}` } })
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});
@@ -191,6 +201,7 @@ export default function Home() {
             <span className={`plantag ${paid ? "on" : ""}`}>
               {paid ? (plan === "caderno" ? "Caderno" : "Pro") : "Grátis"}
             </span>
+            {isAdmin && <a className="adminlink" href="/admin">Admin</a>}
             {!paid && (
               <button className="assinar" onClick={goCheckout}>
                 Assinar Pro · R$ 9,90

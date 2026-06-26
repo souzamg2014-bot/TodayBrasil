@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getContext } from "@/lib/api-auth";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  { auth: { persistSession: false } },
-);
+// termometro: setores em alta, mais buscados e termos em alta. Exige login.
+export async function GET(request: Request) {
+  const ctx = await getContext(request);
+  if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-// termometro da plataforma: setores em alta, mais buscados e termos em alta.
-export async function GET() {
   const [sectors, searches, terms] = await Promise.all([
-    supabase.rpc("sector_counts", { days: 7 }),
-    supabase.rpc("top_searches", { days: 7, lim: 5 }),
-    supabase.rpc("trending_terms", { days: 3, lim: 18 }),
+    ctx.admin.rpc("sector_counts", { days: 7 }),
+    ctx.admin.rpc("top_searches", { days: 7, lim: 5 }),
+    ctx.admin.rpc("trending_terms", { days: 3, lim: 18 }),
   ]);
 
   return NextResponse.json(
@@ -21,6 +18,6 @@ export async function GET() {
       topSearches: searches.data ?? [],
       trending: terms.data ?? [],
     },
-    { headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate=600" } },
+    { headers: { "Cache-Control": "private, no-store" } },
   );
 }

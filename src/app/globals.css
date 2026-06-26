@@ -152,6 +152,29 @@
 }
 .assinarbig:hover { filter: brightness(1.06); }
 
+.adminlink { color: var(--accent); font-weight: 700; font-size: 12.5px; }
+.adminlink:hover { text-decoration: underline; }
+
+/* ===================== /admin ===================== */
+.adminwrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; color: var(--text); }
+.adminhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+.adminhead h1 { font-family: var(--serif); font-size: 28px; margin: 0; }
+.atable { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13.5px; }
+.atable th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.atable td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.adminbadge { margin-left: 8px; font-size: 10px; color: var(--accent); border: 1px solid var(--accent); border-radius: 5px; padding: 1px 6px; }
+.asel, .amonths {
+  background: var(--panel); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 6px 8px; font-size: 13px; margin-right: 6px;
+}
+.amonths { width: 56px; }
+.abtn {
+  background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 8px; padding: 6px 14px; font-weight: 700; font-size: 12.5px; cursor: pointer;
+}
+.abtn:hover { background: rgba(74, 158, 255, 0.22); }
+.abtn:disabled { opacity: 0.5; cursor: default; }
+
 * { box-sizing: border-box; }
 
 html, body {
