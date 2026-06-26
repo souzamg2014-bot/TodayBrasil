@@ -190,10 +190,17 @@ const safeDate = (s) => {
   return isNaN(d.getTime()) ? null : d.toISOString();
 };
 
-// descarta titulos-lixo (filings da SEC, paginas de navegacao)
+// descarta titulos-lixo: filings da SEC + propaganda/cupom (afiliados)
 function isJunk(title = "") {
-  return /^\s*(Form\s+(144|3|4|5|S-1|8-K|10-K|10-Q|6-K|13[DGF])|DEF\s*14A|SC\s*13|Schedule\s*13)\b/i.test(title)
-    || /\bForm\s*144\b|\bDEF\s*14A\b/i.test(title);
+  const t = title || "";
+  // SEC filings (intl)
+  if (/^\s*(Form\s+(144|3|4|5|S-1|8-K|10-K|10-Q|6-K|13[DGF])|DEF\s*14A|SC\s*13|Schedule\s*13)\b/i.test(t)) return true;
+  if (/\bForm\s*144\b|\bDEF\s*14A\b/i.test(t)) return true;
+  // cupom / codigo promocional / propaganda de desconto (NAO pega "cupom cambial/de juros")
+  if (/^\s*(cupom|cupons|c[oó]digo promocional|c[oó]digo de desconto|vale[- ]?desconto)\b/i.test(t)) return true;
+  if (/\bc[oó]digo promocional\b/i.test(t)) return true;
+  if (/\bcupom\b.*\b(off|desconto|%)/i.test(t)) return true;
+  return false;
 }
 
 // Suporta RSS (<item>) e Atom (<entry>). feed = { sector, lang? }.
