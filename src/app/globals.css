@@ -10,7 +10,147 @@
   --gold: #e6b450;
   --gold-soft: rgba(230, 180, 80, 0.14);
   --radius: 14px;
+  --serif: var(--font-serif), Georgia, "Times New Roman", serif;
 }
+
+/* ===================== ENTRADA (porta misteriosa) ===================== */
+.bootscreen { position: fixed; inset: 0; background: #000; }
+
+.entrance { position: fixed; inset: 0; background: #000; color: #fff; overflow: hidden; }
+
+.door { position: absolute; inset: 0; }
+.door-panel {
+  position: absolute; top: 0; bottom: 0; width: 50%;
+  background: radial-gradient(120% 100% at 50% 0%, #14161a 0%, #000 70%);
+  z-index: 1;
+  transition: transform 0.7s cubic-bezier(0.7, 0, 0.25, 1) 0.18s;
+}
+.door-panel.left { left: 0; box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06); }
+.door-panel.right { right: 0; box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06); }
+.door.opening .door-panel.left { transform: translateX(-100%); }
+.door.opening .door-panel.right { transform: translateX(100%); }
+
+.seam {
+  position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; z-index: 2;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.55) 35%, rgba(255, 255, 255, 0.55) 65%, transparent);
+  transition: opacity 0.4s;
+}
+.door.opening .seam { opacity: 0; }
+
+.door-content {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+  transition: opacity 0.35s ease;
+}
+.door.opening .door-content { opacity: 0; }
+
+.masthead {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(56px, 11vw, 140px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: #fff;
+}
+.masthead em { font-style: italic; font-weight: 500; }
+
+.slogan {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(15px, 2.2vw, 22px);
+  color: #9aa0a6;
+  margin: 18px 0 36px;
+  letter-spacing: 0.01em;
+}
+
+.enterbtn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  padding: 14px 34px;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.22em;
+  cursor: pointer; transition: all 0.18s;
+}
+.enterbtn:hover { background: #fff; color: #000; border-color: #fff; }
+.enterbtn .doorico { font-size: 16px; }
+
+/* ---- login ---- */
+.loginwrap {
+  position: absolute; inset: 0; background: #000; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadein 0.5s ease;
+}
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+.back {
+  position: absolute; top: 28px; left: 28px;
+  background: none; border: none; color: #7b8088; cursor: pointer;
+  font-size: 12px; letter-spacing: 0.18em; font-weight: 600;
+}
+.back:hover { color: #fff; }
+.loginbox { width: min(380px, 90vw); display: flex; flex-direction: column; }
+.logomini {
+  font-family: var(--serif); font-size: 22px; text-align: center; color: #fff; font-weight: 600;
+}
+.logomini em { font-style: italic; }
+.loginsub {
+  text-align: center; color: #6c7177; font-size: 12px; letter-spacing: 0.22em;
+  margin: 8px 0 34px;
+}
+.fld { display: flex; flex-direction: column; margin-bottom: 24px; }
+.fld span { font-size: 10.5px; letter-spacing: 0.2em; color: #6c7177; margin-bottom: 8px; }
+.fld input {
+  background: transparent; border: none; border-bottom: 1px solid #2b2f36;
+  color: #fff; font-size: 16px; padding: 8px 2px; outline: none;
+}
+.fld input:focus { border-color: #fff; }
+.fld input::placeholder { color: #4a4f56; }
+.loginbtn {
+  background: #fff; color: #000; border: none; padding: 15px;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.18em; cursor: pointer;
+  margin-top: 6px; transition: opacity 0.15s;
+}
+.loginbtn:hover { opacity: 0.88; }
+.loginbtn:disabled { opacity: 0.5; cursor: default; }
+.loginlinks { display: flex; justify-content: space-between; margin-top: 18px; }
+.loginlinks button { background: none; border: none; color: #7b8088; cursor: pointer; font-size: 13px; }
+.loginlinks button:hover { color: #fff; }
+.formerr { color: #ff6b6b; font-size: 13px; margin: 0 0 14px; }
+.formok { color: #6fcf97; font-size: 13px; margin: 0 0 14px; }
+
+/* ===================== conta + paywall ===================== */
+.acct {
+  display: flex; align-items: center; gap: 12px; justify-content: flex-end;
+  font-size: 12.5px; color: var(--muted); padding-bottom: 10px;
+}
+.acctmail { margin-right: auto; color: #b6c0cc; }
+.plantag {
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px;
+  font-weight: 700; font-size: 11px; color: var(--muted);
+}
+.plantag.on { color: var(--gold); border-color: rgba(230, 180, 80, 0.5); background: var(--gold-soft); }
+.assinar {
+  background: var(--gold-soft); border: 1px solid rgba(230, 180, 80, 0.5); color: var(--gold);
+  border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 12px; cursor: pointer;
+}
+.assinar:hover { background: rgba(230, 180, 80, 0.22); }
+.sair { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12.5px; }
+.sair:hover { color: var(--text); }
+
+.paywall {
+  text-align: center; border: 1px solid var(--border); border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--gold-soft), transparent);
+  padding: 32px 24px; margin: 26px 0 0;
+}
+.paywall h3 { font-family: var(--serif); font-size: 24px; margin: 0 0 8px; }
+.paywall p { color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 520px; margin: 0 auto 20px; }
+.assinarbig {
+  background: var(--gold); color: #1a1205; border: none; border-radius: var(--radius);
+  padding: 14px 28px; font-weight: 800; font-size: 14px; cursor: pointer;
+}
+.assinarbig:hover { filter: brightness(1.06); }
 
 * { box-sizing: border-box; }
 

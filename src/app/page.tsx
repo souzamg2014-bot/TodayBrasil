@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { getSector } from "@/lib/sectors";
 import { THEMES, getTheme } from "@/lib/themes";
 import { timeAgo } from "@/lib/time";
+import { supabase } from "@/lib/supabase";
+import Entrance from "@/components/Entrance";
+import { isPaid, FREE_LIMIT, type Plan } from "@/lib/plans";
 
 type Item = {
   id: string;
@@ -37,6 +41,55 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
   const reqId = useRef(0);
+
+  // sessao + plano (paywall)
+  const [session, setSession] = useState<Session | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [plan, setPlan] = useState<Plan>("free");
+  const [planExp, setPlanExp] = useState<string | null>(null);
+  const paid = isPaid(plan, planExp);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSession(data.session);
+      setChecking(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setChecking(false);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
+  // carrega o plano do perfil ao logar
+  useEffect(() => {
+    if (!session) { setPlan("free"); setPlanExp(null); return; }
+    supabase
+      .from("profiles")
+      .select("plan, plan_expires_at")
+      .eq("id", session.user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) { setPlan((data.plan as Plan) ?? "free"); setPlanExp(data.plan_expires_at ?? null); }
+      });
+  }, [session]);
+
+  async function goCheckout() {
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: s ? { Authorization: `Bearer ${s.access_token}` } : {},
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert(data.message || "Assinatura em breve.");
+    } catch {
+      alert("Não foi possível iniciar a assinatura agora.");
+    }
+  }
 
   // rolagem horizontal das lentes (setas + roda do mouse)
   const lensesRef = useRef<HTMLDivElement>(null);
@@ -74,35 +127,38 @@ export default function Home() {
       setLoading(true);
       const params = new URLSearchParams({ sector: sectorParam, page: String(nextPage) });
       params.set("lang", scope === "mundo" ? "en,es" : "pt");
-      if (debouncedQ) params.set("q", debouncedQ);
+      if (debouncedQ && paid) params.set("q", debouncedQ); // busca: so Pro
       if (scope === "br" && theme) params.set("theme", theme);
       try {
         const res = await fetch(`/api/news?${params}`);
         const data = await res.json();
         if (id !== reqId.current) return; // resposta obsoleta
-        const next: Item[] = data.items ?? [];
+        let next: Item[] = data.items ?? [];
+        // paywall: free ve so as primeiras FREE_LIMIT, sem carregar mais
+        if (!paid) next = next.slice(0, FREE_LIMIT);
         setItems((prev) => (replace ? next : [...prev, ...next]));
-        setHasMore(Boolean(data.hasMore));
+        setHasMore(paid ? Boolean(data.hasMore) : false);
         setPage(nextPage);
       } finally {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sectorParam, debouncedQ, theme, scope],
+    [sectorParam, debouncedQ, theme, scope, paid],
   );
 
-  // recarrega do zero quando muda setor ou busca
+  // recarrega do zero quando muda setor/busca (so logado)
   useEffect(() => {
-    load(0, true);
-  }, [load]);
+    if (session) load(0, true);
+  }, [load, session]);
 
-  // termometro (carrega uma vez; recarrega quando o usuario faz uma busca nova)
+  // termometro (so logado; recarrega quando o usuario faz uma busca nova)
   useEffect(() => {
+    if (!session) return;
     fetch("/api/stats")
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});
-  }, [debouncedQ]);
+  }, [debouncedQ, session]);
 
   const toggleSector = (id: string) =>
     setSelected((prev) =>
@@ -122,10 +178,28 @@ export default function Home() {
     setSelected([]);
   };
 
+  // gate: tela preta enquanto verifica; porta misteriosa se deslogado
+  if (checking) return <div className="bootscreen" />;
+  if (!session) return <Entrance />;
+
   return (
     <>
       <header className="top">
         <div className="shell">
+          <div className="acct">
+            <span className="acctmail">{session.user.email}</span>
+            <span className={`plantag ${paid ? "on" : ""}`}>
+              {paid ? (plan === "caderno" ? "Caderno" : "Pro") : "Grátis"}
+            </span>
+            {!paid && (
+              <button className="assinar" onClick={goCheckout}>
+                Assinar Pro · R$ 9,90
+              </button>
+            )}
+            <button className="sair" onClick={() => supabase.auth.signOut()}>
+              Sair
+            </button>
+          </div>
           <div className="brand">
             <h1>TodayBrasil</h1>
             <span>o que está acontecendo agora</span>
@@ -146,12 +220,15 @@ export default function Home() {
           </div>
           <input
             className="search"
+            disabled={!paid}
             placeholder={
-              scope === "mundo"
+              !paid
+                ? "🔒 Busca disponível no Pro"
+                : scope === "mundo"
                 ? "Buscar nas notícias internacionais..."
                 : "Buscar no título e no resumo das notícias..."
             }
-            value={q}
+            value={paid ? q : ""}
             onChange={(e) => setQ(e.target.value)}
           />
 
@@ -249,10 +326,22 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              {hasMore && (
+              {paid && hasMore && (
                 <button className="more" disabled={loading} onClick={() => load(page + 1, false)}>
                   {loading ? "Carregando..." : "Carregar mais"}
                 </button>
+              )}
+              {!paid && items.length >= FREE_LIMIT && (
+                <div className="paywall">
+                  <h3>Você viu as {FREE_LIMIT} primeiras.</h3>
+                  <p>
+                    Assine o <strong>Pro</strong> por <strong>R$ 9,90/mês</strong> e libere o feed
+                    completo, a busca, as lentes e as fontes primárias (CVM, falências, CAGED, IBAMA).
+                  </p>
+                  <button className="assinarbig" onClick={goCheckout}>
+                    Assinar Pro · R$ 9,90/mês
+                  </button>
+                </div>
               )}
             </>
           )}
