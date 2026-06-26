@@ -13,10 +13,13 @@ export async function POST(request: Request) {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ message: "Faça login para assinar." }, { status: 401 });
 
+  const body = await request.json().catch(() => ({}));
+  const plan = body?.plan === "caderno" ? "caderno" : "pro"; // 'pro' (9,90) | 'caderno' (29,90)
+
   const PAGBANK_TOKEN = process.env.PAGBANK_TOKEN;
   if (!PAGBANK_TOKEN) {
     // ainda sem chave: o botao mostra essa mensagem
-    return NextResponse.json({ message: "Assinatura em configuração. Em breve!" });
+    return NextResponse.json({ plan, message: "Assinatura em configuração. Em breve!" });
   }
 
   // TODO (quando a chave estiver pronta): criar a assinatura/checkout no PagBank

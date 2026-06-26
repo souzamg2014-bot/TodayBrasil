@@ -87,7 +87,7 @@ function Row({
       <td>{u.email}{u.is_admin && <span className="adminbadge">admin</span>}</td>
       <td>
         <span className={`plantag ${ativo ? "on" : ""}`}>
-          {u.plan === "free" ? "Grátis" : u.plan === "pro" ? "Pro" : "Caderno"}
+          {u.plan === "free" ? "Grátis" : u.plan === "pro" ? "Pro" : "Exclusivo"}
         </span>
       </td>
       <td className="hint">{fmt(u.plan_expires_at)}</td>
@@ -95,7 +95,7 @@ function Row({
         <select value={plan} onChange={(e) => setPlan(e.target.value as U["plan"])} className="asel">
           <option value="free">Grátis</option>
           <option value="pro">Pro</option>
-          <option value="caderno">Caderno</option>
+          <option value="caderno">Exclusivo</option>
         </select>
         {plan !== "free" && (
           <input

@@ -7,7 +7,8 @@ import { THEMES, getTheme } from "@/lib/themes";
 import { timeAgo } from "@/lib/time";
 import { supabase } from "@/lib/supabase";
 import Entrance from "@/components/Entrance";
-import { isPaid, FREE_LIMIT, type Plan } from "@/lib/plans";
+import PlansModal from "@/components/PlansModal";
+import { isPaid, hasCaderno, FREE_LIMIT, type Plan } from "@/lib/plans";
 
 type Item = {
   id: string;
@@ -49,7 +50,14 @@ export default function Home() {
   const [planExp, setPlanExp] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [atHome, setAtHome] = useState(false); // logo -> volta pra porta (home)
+  const [showPlans, setShowPlans] = useState(false);
   const paid = isPaid(plan, planExp);
+  const exclusivo = hasCaderno(plan, planExp);
+
+  const openCaderno = () => {
+    if (exclusivo) window.location.href = "/caderno";
+    else setShowPlans(true);
+  };
 
   useEffect(() => {
     let active = true;
@@ -85,12 +93,17 @@ export default function Home() {
       .then(({ data }) => setIsAdmin(!!data?.is_admin), () => setIsAdmin(false));
   }, [session]);
 
-  async function goCheckout() {
+  async function goCheckout(planId: "pro" | "caderno") {
+    setShowPlans(false);
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: s ? { Authorization: `Bearer ${s.access_token}` } : {},
+        headers: {
+          "Content-Type": "application/json",
+          ...(s ? { Authorization: `Bearer ${s.access_token}` } : {}),
+        },
+        body: JSON.stringify({ plan: planId }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -202,12 +215,12 @@ export default function Home() {
           <div className="acct">
             <span className="acctmail">{session.user.email}</span>
             <span className={`plantag ${paid ? "on" : ""}`}>
-              {paid ? (plan === "caderno" ? "Caderno" : "Pro") : "Grátis"}
+              {paid ? (plan === "caderno" ? "Exclusivo" : "Pro") : "Grátis"}
             </span>
             {isAdmin && <a className="adminlink" href="/admin">Admin</a>}
-            {!paid && (
-              <button className="assinar" onClick={goCheckout}>
-                Assinar Pro · R$ 9,90
+            {!exclusivo && (
+              <button className="assinar" onClick={() => setShowPlans(true)}>
+                Assinar
               </button>
             )}
             <button className="sair" onClick={() => supabase.auth.signOut()}>
@@ -218,7 +231,9 @@ export default function Home() {
             <h1 className="logobtn" onClick={() => setAtHome(true)} title="Início">
               Today<em>Brasil</em>
             </h1>
-            <span>o que está acontecendo agora</span>
+            <button className="cadernobtn" onClick={openCaderno}>
+              📓 Caderno Exclusivo
+            </button>
             <div className="scope">
               <button
                 className={`scopebtn ${scope === "br" ? "on" : ""}`}
@@ -267,7 +282,7 @@ export default function Home() {
                   key={t.id}
                   className={`lens ${theme === t.id ? "active" : ""} ${paid ? "" : "locked"}`}
                   title={paid ? t.blurb : `${t.label} — disponível no Pro`}
-                  onClick={() => (paid ? toggleTheme(t.id) : goCheckout())}
+                  onClick={() => (paid ? toggleTheme(t.id) : setShowPlans(true))}
                 >
                   <span className="lemoji">{paid ? t.emoji : "🔒"}</span>
                   {t.label}
@@ -354,8 +369,8 @@ export default function Home() {
                     Assine o <strong>Pro</strong> por <strong>R$ 9,90/mês</strong> e libere o feed
                     completo, a busca, as lentes e as fontes primárias (CVM, falências, CAGED, IBAMA).
                   </p>
-                  <button className="assinarbig" onClick={goCheckout}>
-                    Assinar Pro · R$ 9,90/mês
+                  <button className="assinarbig" onClick={() => setShowPlans(true)}>
+                    Ver planos
                   </button>
                 </div>
               )}
@@ -422,6 +437,8 @@ export default function Home() {
           </section>
         </aside>
       </div>
+
+      {showPlans && <PlansModal onClose={() => setShowPlans(false)} onChoose={goCheckout} />}
     </>
   );
 }

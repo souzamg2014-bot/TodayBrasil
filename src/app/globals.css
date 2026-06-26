@@ -155,6 +155,96 @@
 .adminlink { color: var(--accent); font-weight: 700; font-size: 12.5px; }
 .adminlink:hover { text-decoration: underline; }
 
+/* botao Caderno Exclusivo no header */
+.cadernobtn {
+  background: linear-gradient(180deg, rgba(230, 180, 80, 0.12), transparent);
+  border: 1px solid rgba(230, 180, 80, 0.5);
+  color: var(--gold);
+  border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 13px; cursor: pointer;
+}
+.cadernobtn:hover { background: rgba(230, 180, 80, 0.2); }
+
+/* ===================== modal de planos ===================== */
+.modalback {
+  position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  position: relative; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 18px; padding: 32px; width: min(720px, 96vw); max-height: 92vh; overflow: auto;
+}
+.modalx { position: absolute; top: 14px; right: 18px; background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; line-height: 1; }
+.modaltitle { font-family: var(--serif); font-size: 28px; text-align: center; margin: 0 0 6px; }
+.modalsub { text-align: center; color: var(--muted); font-size: 13.5px; margin: 0 0 26px; }
+.plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.plancard { border: 1px solid var(--border); border-radius: 14px; padding: 22px; position: relative; background: var(--panel-2); }
+.plancard.hot { border-color: rgba(230, 180, 80, 0.6); box-shadow: 0 0 0 1px rgba(230, 180, 80, 0.2); }
+.planflag { position: absolute; top: -10px; right: 16px; background: var(--gold); color: #1a1205; font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 999px; }
+.plancard h3 { font-family: var(--serif); font-size: 22px; margin: 0 0 6px; }
+.price { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; }
+.price span { font-size: 16px; vertical-align: super; margin-right: 2px; color: var(--muted); }
+.price small { font-size: 14px; font-weight: 500; color: var(--muted); }
+.plantagline { color: var(--muted); font-size: 13px; margin: 6px 0 14px; }
+.plancard ul { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.plancard li { font-size: 13.5px; padding-left: 20px; position: relative; }
+.plancard li::before { content: "✓"; position: absolute; left: 0; color: var(--gold); font-weight: 800; }
+.planbtn { width: 100%; background: var(--gold); color: #1a1205; border: none; border-radius: 10px; padding: 13px; font-weight: 800; font-size: 14px; cursor: pointer; }
+.plancard:not(.hot) .planbtn { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+.planbtn:hover { filter: brightness(1.05); }
+.modalfine { text-align: center; color: var(--muted); font-size: 12px; margin: 22px 0 0; }
+@media (max-width: 560px) { .plans { grid-template-columns: 1fr; } }
+
+/* ===================== Caderno (feed + materia) ===================== */
+.cadwrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; color: var(--text); }
+.cadhead { display: flex; align-items: baseline; justify-content: space-between; }
+.cadlogo { font-family: var(--serif); font-size: 30px; font-weight: 600; margin: 0; }
+.cadlogo em { font-style: italic; color: var(--gold); }
+.caddenied { text-align: center; padding-top: 80px; }
+.caddenied p { color: var(--muted); margin: 14px 0 22px; }
+
+.cadtemas { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 8px; }
+.tchip { background: var(--panel); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tchip.on { background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+
+.cadlist { list-style: none; margin: 0; padding: 0; }
+.cadcard { display: block; padding: 22px 4px; border-bottom: 1px solid var(--border); }
+.cadcard:hover { background: var(--panel); }
+.cadtema { font-size: 12px; font-weight: 700; color: var(--gold); letter-spacing: 0.02em; }
+.favmark { color: var(--gold); }
+.cadhi { font-family: var(--serif); font-style: italic; font-size: 17px; color: #c7ced6; margin: 8px 0 4px; }
+.cadcard h3 { font-family: var(--serif); font-size: 23px; margin: 4px 0 8px; line-height: 1.25; }
+.cadresumo { color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+/* materia */
+.artwrap { max-width: 720px; margin: 0 auto; padding: 22px 20px 90px; color: var(--text); }
+.artbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+.arttools { display: flex; gap: 8px; flex-wrap: wrap; }
+.tool { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.tool:hover { border-color: var(--gold); color: var(--gold); }
+.tool.on { background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+.article h1 { font-family: var(--serif); font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 10px 0 14px; }
+.arthi { font-family: var(--serif); font-style: italic; font-size: 19px; color: #c7ced6; margin: 0 0 12px; }
+.artmeta { color: var(--muted); font-size: 13px; margin: 0 0 26px; }
+.artresumo { background: var(--panel); border-left: 3px solid var(--gold); border-radius: 8px; padding: 16px 18px; margin: 0 0 28px; }
+.artresumo strong { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.artresumo p { margin: 0; color: #c7ced6; font-size: 15px; line-height: 1.6; }
+.artbody p { font-size: 17px; line-height: 1.75; margin: 0 0 20px; color: #e2e7ec; }
+.artfontes { margin-top: 36px; border-top: 1px solid var(--border); padding-top: 18px; }
+.artfontes strong { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.artfontes ul { margin: 10px 0 0; padding-left: 18px; }
+.artfontes li { font-size: 13.5px; margin-bottom: 6px; }
+.artfontes a { color: var(--accent); }
+
+/* impressao (PDF) */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+  .artwrap { max-width: 100%; padding: 0; }
+  .article h1, .arthi, .cadlogo { color: #000; }
+  .artbody p, .artresumo p, .arthi { color: #111; }
+  .artresumo { background: #f4f4f4; }
+}
+
 /* ===================== /admin ===================== */
 .adminwrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; color: var(--text); }
 .adminhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
