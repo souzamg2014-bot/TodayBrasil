@@ -11,7 +11,10 @@ export async function GET(request: Request) {
   const sp = new URL(request.url).searchParams;
   const sectorsRaw = (sp.get("sector") ?? "all").split(",").map((s) => s.trim()).filter(Boolean);
   const sectors = sectorsRaw.filter((s) => s !== "all");
-  const themes = (sp.get("theme") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  // lentes: so Pro (free nao filtra por lente)
+  const themes = ctx.paid
+    ? (sp.get("theme") ?? "").split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
   const langs = (sp.get("lang") ?? "pt").split(",").map((s) => s.trim()).filter(Boolean);
 
   // ---- PAYWALL no servidor (nao confia no front) ----

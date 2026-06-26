@@ -260,11 +260,11 @@ export default function Home() {
               {THEMES.map((t) => (
                 <button
                   key={t.id}
-                  className={`lens ${theme === t.id ? "active" : ""}`}
-                  title={t.blurb}
-                  onClick={() => toggleTheme(t.id)}
+                  className={`lens ${theme === t.id ? "active" : ""} ${paid ? "" : "locked"}`}
+                  title={paid ? t.blurb : `${t.label} — disponível no Pro`}
+                  onClick={() => (paid ? toggleTheme(t.id) : goCheckout())}
                 >
-                  <span className="lemoji">{t.emoji}</span>
+                  <span className="lemoji">{paid ? t.emoji : "🔒"}</span>
                   {t.label}
                 </button>
               ))}
