@@ -232,20 +232,20 @@ export default function Home() {
               Today<em>Brasil</em>
             </h1>
             <button className="cadernobtn" onClick={openCaderno}>
-              📓 Caderno Exclusivo
+              Caderno Exclusivo
             </button>
             <div className="scope">
               <button
                 className={`scopebtn ${scope === "br" ? "on" : ""}`}
                 onClick={() => switchScope("br")}
               >
-                🇧🇷 Brasil
+                Brasil
               </button>
               <button
                 className={`scopebtn ${scope === "mundo" ? "on" : ""}`}
                 onClick={() => switchScope("mundo")}
               >
-                🌎 Mundo
+                Mundo
               </button>
             </div>
           </div>
@@ -254,7 +254,7 @@ export default function Home() {
             disabled={!paid}
             placeholder={
               !paid
-                ? "🔒 Busca disponível no Pro"
+                ? "Busca disponível no Pro"
                 : scope === "mundo"
                 ? "Buscar nas notícias internacionais..."
                 : "Buscar no título e no resumo das notícias..."
@@ -284,7 +284,6 @@ export default function Home() {
                   title={paid ? t.blurb : `${t.label} — disponível no Pro`}
                   onClick={() => (paid ? toggleTheme(t.id) : setShowPlans(true))}
                 >
-                  <span className="lemoji">{paid ? t.emoji : "🔒"}</span>
                   {t.label}
                 </button>
               ))}
@@ -303,7 +302,7 @@ export default function Home() {
             <div className="selinfo">
               Filtrando:{" "}
               {selected
-                .map((id) => `${getSector(id)?.emoji ?? ""} ${getSector(id)?.label ?? id}`)
+                .map((id) => getSector(id)?.label ?? id)
                 .join(", ")}
               <button className="clear" onClick={() => setSelected([])}>
                 limpar
@@ -343,12 +342,12 @@ export default function Home() {
                           if (!lm) return null;
                           return (
                             <span key={th} className="ltag">
-                              {lm.emoji} {lm.label}
+                              {lm.label}
                             </span>
                           );
                         })}
                         <span className="rtag">
-                          {getSector(it.sector)?.emoji} {getSector(it.sector)?.label ?? it.sector}
+                          {getSector(it.sector)?.label ?? it.sector}
                         </span>
                       </div>
                       <h3>{it.title}</h3>
@@ -380,7 +379,7 @@ export default function Home() {
 
         <aside className="side">
           <section className="panel">
-            <h4>📊 Setores em alta</h4>
+            <h4>Setores em alta</h4>
             <p className="hint">últimos 7 dias · clique pra filtrar</p>
             <ul className="rank">
               {(stats?.sectors ?? []).map((s) => {
@@ -392,9 +391,7 @@ export default function Home() {
                       className={`rankrow ${isOn(s.sector) ? "on" : ""}`}
                       onClick={() => toggleSector(s.sector)}
                     >
-                      <span className="rl">
-                        {meta?.emoji} {meta?.label ?? s.sector}
-                      </span>
+                      <span className="rl">{meta?.label ?? s.sector}</span>
                       <span className="rn">{s.n}</span>
                       <span className="bar" style={{ width: `${(s.n / max) * 100}%` }} />
                     </button>
@@ -402,37 +399,6 @@ export default function Home() {
                 );
               })}
               {!stats && <li className="hint">carregando...</li>}
-            </ul>
-          </section>
-
-          <section className="panel">
-            <h4>🔥 Em alta</h4>
-            <p className="hint">aparecem em X notícias (3 dias)</p>
-            <div className="cloud">
-              {(stats?.trending ?? []).map((t) => (
-                <button key={t.term} className="termchip" onClick={() => setQ(t.term)}>
-                  {t.term} <em>{t.ndoc}</em>
-                </button>
-              ))}
-              {stats && stats.trending.length === 0 && <span className="hint">sem dados ainda</span>}
-            </div>
-          </section>
-
-          <section className="panel">
-            <h4>🔎 Mais buscados</h4>
-            <p className="hint">o que as pessoas procuram</p>
-            <ul className="rank">
-              {(stats?.topSearches ?? []).map((s) => (
-                <li key={s.q}>
-                  <button className="rankrow" onClick={() => setQ(s.q)}>
-                    <span className="rl">{s.q}</span>
-                    <span className="rn">{s.hits}</span>
-                  </button>
-                </li>
-              ))}
-              {stats && stats.topSearches.length === 0 && (
-                <li className="hint">ainda ninguém buscou. seja o primeiro 👆</li>
-              )}
             </ul>
           </section>
         </aside>

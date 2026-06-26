@@ -91,7 +91,7 @@ export default function CadernoArticle() {
       </div>
 
       <article className="article">
-        <span className="cadtema">{getTema(a.tema)?.emoji} {getTema(a.tema)?.label ?? a.tema}</span>
+        <span className="cadtema">{getTema(a.tema)?.label ?? a.tema}</span>
         <h1>{a.titulo}</h1>
         {a.highlight && <p className="arthi">{a.highlight}</p>}
         <p className="artmeta">{a.autor} · {data}</p>

@@ -57,7 +57,7 @@ export default function Caderno() {
         <button className={`tchip ${!tema ? "on" : ""}`} onClick={() => setTema(null)}>Todos</button>
         {CADERNO_TEMAS.map((t) => (
           <button key={t.id} className={`tchip ${tema === t.id ? "on" : ""}`} onClick={() => setTema(t.id)}>
-            {t.emoji} {t.label}
+            {t.label}
           </button>
         ))}
       </div>
@@ -72,7 +72,7 @@ export default function Caderno() {
                 <li key={a.id}>
                   <a className="cadcard" href={`/caderno/${a.slug}`}>
                     <span className="cadtema">
-                      {getTema(a.tema)?.emoji} {getTema(a.tema)?.label ?? a.tema}
+                      {getTema(a.tema)?.label ?? a.tema}
                       {favs.has(a.id) && <span className="favmark"> ★</span>}
                     </span>
                     <h3>{a.titulo}</h3>
@@ -93,9 +93,7 @@ export default function Caderno() {
               <ul className="favlist">
                 {favoritas.map((a) => (
                   <li key={a.id}>
-                    <a href={`/caderno/${a.slug}`}>
-                      <span className="favtema">{getTema(a.tema)?.emoji}</span> {a.titulo}
-                    </a>
+                    <a href={`/caderno/${a.slug}`}>{a.titulo}</a>
                   </li>
                 ))}
               </ul>
