@@ -42,31 +42,55 @@ const TEMAS = [
 
 const DIAS = Number(process.env.CADERNO_DIAS || 2);
 const PER = Number(process.env.CADERNO_CANDIDATOS || 25);
+const JA_DIAS = Number(process.env.CADERNO_JA_DIAS || 10); // janela do que ja saiu
 const cutoff = new Date(Date.now() - DIAS * 86400 * 1000).toISOString();
 
-async function candidatos(t) {
+// o que ja virou materia (p/ NAO repetir): urls de fontes ja usadas + titulos
+async function jaPublicado() {
+  const desde = new Date(Date.now() - JA_DIAS * 86400 * 1000).toISOString();
+  const { data } = await supabase
+    .from("caderno_articles")
+    .select("titulo, tema, fontes, published_at")
+    .gte("published_at", desde)
+    .order("published_at", { ascending: false });
+  const urls = new Set();
+  for (const a of data ?? [])
+    for (const f of a.fontes ?? []) if (f?.url) urls.add(f.url);
+  return { urls, artigos: data ?? [] };
+}
+
+async function candidatos(t, usadas) {
   let q = supabase
     .from("news_articles")
     .select("title, summary, source, url, published_at")
     .eq("lang", "pt")
     .gte("published_at", cutoff)
     .order("published_at", { ascending: false })
-    .limit(PER);
+    .limit(PER * 2); // pega mais p/ compensar os que serao filtrados
   if (t.lens) q = q.overlaps("themes", [t.lens]);
   if (t.sector) q = q.eq("sector", t.sector);
   const { data, error } = await q;
   if (error) { console.error(`erro ${t.id}:`, error.message); return []; }
-  return data ?? [];
+  // remove o que ja foi usado como fonte de materia anterior
+  return (data ?? []).filter((a) => !usadas.has(a.url)).slice(0, PER);
 }
 
 async function main() {
   const hoje = new Date().toLocaleDateString("pt-BR");
+  const { urls: usadas, artigos } = await jaPublicado();
+
   let md = `# Briefing do Caderno — ${hoje}\n\n`;
   md += `Janela: últimos ${DIAS} dia(s). Escreva **5 matérias por tema** seguindo docs/caderno-prompt.md.\n`;
   md += `Saída: um JSON array (campos: tema, slug, titulo, highlight, resumo, conteudo, fontes[]).\n\n`;
 
+  // o que NAO repetir (ja publicado nos ultimos dias)
+  md += `## JÁ PUBLICADO (NÃO repetir estes assuntos) — ${artigos.length}\n\n`;
+  if (artigos.length === 0) md += "_nada ainda._\n";
+  for (const a of artigos) md += `- [${a.tema}] ${a.titulo}\n`;
+  md += `\n(As notícias já usadas como fonte foram removidas dos candidatos abaixo.)\n`;
+
   for (const t of TEMAS) {
-    const itens = await candidatos(t);
+    const itens = await candidatos(t, usadas);
     md += `\n---\n\n## TEMA: ${t.id}  (${t.label}) — ${itens.length} candidatos\n\n`;
     if (itens.length === 0) { md += "_sem material recente._\n"; continue; }
     itens.forEach((a, i) => {
