@@ -77,7 +77,10 @@ export default function CadernoArticle() {
   return (
     <div className="artwrap">
       <div className="artbar no-print">
-        <a className="hint" href="/caderno">← Caderno</a>
+        <div className="artbarleft">
+          <a href="/"><span className="cadminilogo">Today<em>Brasil</em></span></a>
+          <a className="hint" href="/caderno">← Caderno</a>
+        </div>
         <div className="arttools">
           <button className={`tool ${fav ? "on" : ""}`} onClick={toggleFav} title="Favoritar">{fav ? "★" : "☆"} Favoritar</button>
           <button className="tool" onClick={copiar} title="Copiar">{copied ? "✓ Copiado" : "⧉ Copiar"}</button>
@@ -92,25 +95,17 @@ export default function CadernoArticle() {
         <h1>{a.titulo}</h1>
         {a.highlight && <p className="arthi">{a.highlight}</p>}
         <p className="artmeta">{a.autor} · {data}</p>
-        {a.resumo && (
-          <div className="artresumo">
-            <strong>Resumo</strong>
-            <p>{a.resumo}</p>
-          </div>
-        )}
         <div className="artbody">
           {paras.map((p, i) => <p key={i}>{p}</p>)}
         </div>
         {a.fontes && a.fontes.length > 0 && (
-          <div className="artfontes no-print">
-            <strong>Fontes</strong>
-            <ul>
-              {a.fontes.map((f, i) => (
-                <li key={i}>
-                  {f.url ? <a href={f.url} target="_blank" rel="noopener noreferrer">{f.titulo || f.url}</a> : f.titulo}
-                </li>
-              ))}
-            </ul>
+          <div className="artfontes">
+            <span className="fonteslabel">Fontes</span>
+            {a.fontes.map((f, i) => (
+              <a key={i} className="fonte" href={f.url || "#"} target="_blank" rel="noopener noreferrer">
+                {f.titulo || f.url}
+              </a>
+            ))}
           </div>
         )}
       </article>
