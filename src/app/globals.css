@@ -208,7 +208,6 @@
 .favlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
 .favlist a { display: block; font-size: 13.5px; line-height: 1.4; color: var(--text); }
 .favlist a:hover { color: var(--gold); }
-.favtema { opacity: 0.9; }
 @media (max-width: 860px) { .cadlayout { grid-template-columns: 1fr; } .cadside { position: static; } }
 .caddenied { text-align: center; padding-top: 80px; }
 .caddenied p { color: var(--muted); margin: 14px 0 22px; }
@@ -458,7 +457,6 @@ a { color: inherit; text-decoration: none; }
   transition: all 0.12s;
 }
 .lens:hover { border-color: rgba(230, 180, 80, 0.6); }
-.lens .lemoji { font-size: 13px; }
 .lens.active {
   background: var(--gold-soft);
   border-color: var(--gold);
@@ -610,20 +608,6 @@ a { color: inherit; text-decoration: none; }
   opacity: 0.5;
   border-radius: 2px;
 }
-
-.cloud { display: flex; flex-wrap: wrap; gap: 6px; }
-.termchip {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: all 0.12s;
-}
-.termchip:hover { border-color: var(--accent); color: var(--accent); }
-.termchip em { font-style: normal; color: var(--muted); font-size: 11px; margin-left: 2px; }
 
 /* responsivo: some a sidebar pro fim em telas estreitas */
 @media (max-width: 860px) {

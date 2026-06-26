@@ -1,12 +1,12 @@
 // Temas do Caderno Exclusivo (guia das materias). Baseado nas lentes, ajustado.
-export type CadernoTema = { id: string; label: string; emoji: string };
+export type CadernoTema = { id: string; label: string };
 
 export const CADERNO_TEMAS: CadernoTema[] = [
-  { id: "ma", label: "M&A", emoji: "🤝" },
-  { id: "startup", label: "Startups", emoji: "🚀" },
-  { id: "inovacao", label: "Inovação & IA", emoji: "💡" },
-  { id: "industria", label: "Indústria", emoji: "🏭" },
-  { id: "politica", label: "Política & Regulação", emoji: "🏛️" },
+  { id: "ma", label: "M&A" },
+  { id: "startup", label: "Startups" },
+  { id: "inovacao", label: "Inovação & IA" },
+  { id: "industria", label: "Indústria" },
+  { id: "politica", label: "Política & Regulação" },
 ];
 
 const BY = new Map(CADERNO_TEMAS.map((t) => [t.id, t]));
