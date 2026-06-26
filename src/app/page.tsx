@@ -216,7 +216,7 @@ export default function Home() {
           </div>
           <div className="brand">
             <h1 className="logobtn" onClick={() => setAtHome(true)} title="Início">
-              TodayBrasil
+              Today<em>Brasil</em>
             </h1>
             <span>o que está acontecendo agora</span>
             <div className="scope">
