@@ -2,7 +2,7 @@
 
 export type Plan = "free" | "pro" | "caderno";
 
-// id 'caderno' mantido no banco; rotulo de exibicao = "Exclusivo"
+// id de storage 'caderno' mantido no banco; rotulo de exibicao = "Premium"
 export const PLANS = {
   free: { label: "Grátis", price: 0 },
   pro: {
@@ -18,14 +18,15 @@ export const PLANS = {
     ],
   },
   caderno: {
-    label: "Exclusivo",
+    label: "Premium",
     price: 29.9,
-    tagline: "O Pro + nosso Caderno de Inteligência.",
+    tagline: "O Pro + Resumos Inteligentes.",
     perks: [
       "Tudo do Pro",
-      "Caderno Exclusivo: matérias escritas por nós",
-      "Análises de M&A, Startups, Inovação & IA, Indústria e Política",
-      "Favoritar, gerar PDF e compartilhar",
+      "Resumos Inteligentes: o que aconteceu em cada tema",
+      "Por janela do dia (manhã, tarde, noite)",
+      "Dezenas de fontes cruzadas em um único resumo",
+      "M&A, Startups, Inovação & IA, Indústria e Política",
     ],
   },
 } as const;
@@ -40,8 +41,8 @@ export function isPaid(plan?: Plan | null, expiresAt?: string | null): boolean {
   return new Date(expiresAt).getTime() > Date.now();
 }
 
-// caderno inteligente (IA) - so no plano caderno
-export function hasCaderno(plan?: Plan | null, expiresAt?: string | null): boolean {
+// Resumos Inteligentes - so no plano Premium (id de storage 'caderno')
+export function hasResumos(plan?: Plan | null, expiresAt?: string | null): boolean {
   return plan === "caderno" && isPaid(plan, expiresAt);
 }
 

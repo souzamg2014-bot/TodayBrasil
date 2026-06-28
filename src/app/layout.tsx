@@ -16,9 +16,15 @@ export const metadata: Metadata = {
   description: "Sua fonte de notícias.",
 };
 
+// Aplica o tema salvo antes da pintura (evita flash). Default = claro.
+const themeScript = `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={playfair.variable}>
+    <html lang="pt-BR" className={playfair.variable} data-theme="light">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );

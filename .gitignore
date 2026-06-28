@@ -8,5 +8,11 @@ out/
 *.log
 .DS_Store
 *.tsbuildinfo
-caderno-brief.md
-caderno-articles*.json
+
+# Resumos Inteligentes: briefing e payload sao gerados (efemeros)
+resumos-brief.md
+resumos*.json
+
+# Conteudo social gerado (privado), exceto o README
+redes-sociais/*
+!redes-sociais/README.md

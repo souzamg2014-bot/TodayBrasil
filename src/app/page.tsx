@@ -8,7 +8,8 @@ import { timeAgo } from "@/lib/time";
 import { supabase } from "@/lib/supabase";
 import Entrance from "@/components/Entrance";
 import PlansModal from "@/components/PlansModal";
-import { isPaid, hasCaderno, FREE_LIMIT, type Plan } from "@/lib/plans";
+import ThemeToggle from "@/components/ThemeToggle";
+import { isPaid, hasResumos, FREE_LIMIT, type Plan } from "@/lib/plans";
 
 type Item = {
   id: string;
@@ -52,10 +53,10 @@ export default function Home() {
   const [atHome, setAtHome] = useState(false); // logo -> volta pra porta (home)
   const [showPlans, setShowPlans] = useState(false);
   const paid = isPaid(plan, planExp);
-  const exclusivo = hasCaderno(plan, planExp);
+  const premium = hasResumos(plan, planExp);
 
-  const openCaderno = () => {
-    if (exclusivo) window.location.href = "/caderno";
+  const openResumos = () => {
+    if (premium) window.location.href = "/resumos";
     else setShowPlans(true);
   };
 
@@ -215,10 +216,11 @@ export default function Home() {
           <div className="acct">
             <span className="acctmail">{session.user.email}</span>
             <span className={`plantag ${paid ? "on" : ""}`}>
-              {paid ? (plan === "caderno" ? "Exclusivo" : "Pro") : "Grátis"}
+              {paid ? (plan === "caderno" ? "Premium" : "Pro") : "Grátis"}
             </span>
             {isAdmin && <a className="adminlink" href="/admin">Admin</a>}
-            {!exclusivo && (
+            <ThemeToggle />
+            {!premium && (
               <button className="assinar" onClick={() => setShowPlans(true)}>
                 Assinar
               </button>
@@ -231,8 +233,8 @@ export default function Home() {
             <h1 className="logobtn" onClick={() => setAtHome(true)} title="Início">
               Today<em>Brasil</em>
             </h1>
-            <button className="cadernobtn" onClick={openCaderno}>
-              Caderno Exclusivo
+            <button className="cadernobtn" onClick={openResumos}>
+              Resumos Inteligentes
             </button>
             <div className="scope">
               <button

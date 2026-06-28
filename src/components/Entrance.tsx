@@ -9,7 +9,7 @@ const ROTATION = [
   { kind: "text", text: "Todas as fontes de notícias em um só lugar" },
   { kind: "text", text: "O seu principal diário de notícias" },
   { kind: "text", text: "18 setores monitorados" },
-  { kind: "text", text: "Caderno exclusivo" },
+  { kind: "text", text: "Resumos inteligentes" },
   { kind: "logo" },
 ] as const;
 
@@ -54,6 +54,7 @@ export default function Entrance({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false); // aceite dos termos (so no cadastro)
 
   const openDoor = () => {
     setView("opening");
@@ -76,6 +77,11 @@ export default function Entrance({
         if (error) throw error;
         setMsg("Se o e-mail existir, enviamos um link para redefinir a senha.");
       } else if (mode === "signup") {
+        if (!accepted) {
+          setErr("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
+          setBusy(false);
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({ email, password: pass });
         if (error) throw error;
         if (!data.session) setMsg("Conta criada. Confirme seu e-mail para entrar.");
@@ -152,10 +158,25 @@ export default function Entrance({
               </label>
             )}
 
+            {mode === "signup" && (
+              <label className="accept">
+                <input
+                  type="checkbox"
+                  checked={accepted}
+                  onChange={(e) => setAccepted(e.target.checked)}
+                />
+                <span>
+                  Li e aceito os{" "}
+                  <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de Uso</a> e a{" "}
+                  <a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.
+                </span>
+              </label>
+            )}
+
             {err && <p className="formerr">{err}</p>}
             {msg && <p className="formok">{msg}</p>}
 
-            <button className="loginbtn" type="submit" disabled={busy}>
+            <button className="loginbtn" type="submit" disabled={busy || (mode === "signup" && !accepted)}>
               {busy ? "..." : mode === "login" ? "ENTRAR" : mode === "signup" ? "CRIAR CONTA" : "ENVIAR LINK"}
             </button>
 
