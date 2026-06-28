@@ -1,7 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+// Frases que surgem esfumaçadas e somem, mantendo o tom de mistério da porta.
+// Fecha com o logo e recomeça. "18 setores" reflete a taxonomia de src/lib/sectors.ts.
+const ROTATION = [
+  { kind: "text", text: "Todas as fontes de notícias em um só lugar" },
+  { kind: "text", text: "O seu principal diário de notícias" },
+  { kind: "text", text: "18 setores monitorados" },
+  { kind: "text", text: "Caderno exclusivo" },
+  { kind: "logo" },
+] as const;
+
+// Slogan animado: troca a frase a cada ciclo; o key={i} remonta o elemento e
+// dispara de novo a animação CSS de surgir/sumir (blur). Respeita reduce-motion.
+function RotatingSlogan() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setI((p) => (p + 1) % ROTATION.length), 3200);
+    return () => clearInterval(id);
+  }, []);
+  const item = ROTATION[i];
+  return (
+    <div className="slogan-rotor" aria-live="polite">
+      <span key={i} className="slogan-phrase">
+        {item.kind === "logo" ? (
+          <span className="slogan-logo">
+            Today<em>Brasil</em>
+          </span>
+        ) : (
+          item.text
+        )}
+      </span>
+    </div>
+  );
+}
 
 // Tela de entrada: porta (logo + slogan + ENTRAR) -> abre -> login.
 // Ao autenticar, o onAuthStateChange no page.tsx troca pro feed.
@@ -68,7 +103,7 @@ export default function Entrance({
             <h1 className="masthead">
               Today<em>Brasil</em>
             </h1>
-            <p className="slogan">Sua fonte de notícias</p>
+            <RotatingSlogan />
             <button className="enterbtn" onClick={openDoor} aria-label="Entrar">
               <span className="doorico" aria-hidden>⇥</span> ENTRAR
             </button>
