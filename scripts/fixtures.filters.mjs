@@ -1,0 +1,67 @@
+// ============================================================
+// Casos-verdade (golden) da auditoria de filtros.
+//
+// Cada caso e uma manchete (titulo [+ resumo]) com o SETOR e as LENTES
+// que o classificador DEVE produzir. Sao o contrato dos filtros: se alguem
+// mexer nas palavras-chave (classify.mjs) ou nas lentes (themes.mjs) e quebrar
+// um destes, a auditoria falha. Adicione um caso sempre que corrigir um falso
+// positivo/negativo no feed, pra ele nunca mais voltar.
+//
+// sector: id esperado (de src/lib/sectors.ts). "geral" = nenhuma palavra bateu
+//         ou empate (o robo entao usa o setor da fonte).
+// themes: conjunto exato de lentes esperadas (de themes.mjs). [] = nenhuma.
+// ============================================================
+
+export const SECTOR_CASES = [
+  // --- positivos diretos (uma palavra-chave clara por setor) ---
+  { text: "Safra de soja bate recorde no Mato Grosso", sector: "agronegocio" },
+  { text: "Cervejaria lança nova linha de bebida sem álcool", sector: "alimentos-bebidas" },
+  { text: "Magazine Luiza amplia e-commerce e vendas no varejo", sector: "comercio-varejista" },
+  { text: "Atacadista expande distribuição para o Nordeste", sector: "comercio-atacadista" },
+  { text: "Montadora retoma produção industrial na fábrica de SP", sector: "industria" },
+  { text: "Incorporadora lança empreendimento imobiliário em Curitiba", sector: "construcao-imobiliario" },
+  { text: "Startup de software fecha contrato de nuvem", sector: "tecnologia-software" },
+  { text: "Operadora de telecom amplia banda larga 5G", sector: "telecomunicacoes" },
+  { text: "Banco Central mantém a taxa Selic e juros elevados", sector: "servicos-financeiros" },
+  { text: "Consultoria de auditoria reforça time de recrutamento", sector: "servicos-empresariais" },
+  { text: "Hospital inaugura clínica e novo plano de saúde", sector: "saude-bem-estar" },
+  { text: "Universidade abre vestibular e amplia ensino a distância", sector: "educacao" },
+  { text: "Transportadora investe em frete e logística de entrega", sector: "transporte-logistica" },
+  { text: "Petrobras aumenta produção de petróleo e gás natural", sector: "energia-recursos" },
+  { text: "Rede de hotel aposta em turismo e novos pacotes de viagem", sector: "turismo-hotelaria" },
+  { text: "Governo sanciona nova lei e abre licitação no ministério", sector: "setor-publico-terceiro" },
+
+  // --- exclusoes: a palavra existe, mas no OUTRO sentido (deve dar 'geral') ---
+  { text: "Empresa cria banco de talentos para novas vagas", sector: "geral" },
+  { text: "Pesquisadores montam banco de dados aberto sobre o clima", sector: "geral" },
+  { text: "Obra de arte é leiloada por valor recorde em Nova York", sector: "geral" },
+
+  // --- exclusoes que NAO devem zerar o setor legitimo ---
+  { text: "Operadora de turismo amplia pacotes de viagem para o verão", sector: "turismo-hotelaria" },
+
+  // --- fronteira de palavra: nao casar substring solto ---
+  { text: "Advogado fecha acordo em audiência trabalhista", sector: "geral" }, // 'gado' nao casa advogado
+  { text: "Among Us ganha nova atualização nesta semana", sector: "geral" },   // 'ong' nao casa among
+];
+
+export const THEME_CASES = [
+  // M&A
+  { text: "Empresa adquire rival em fusão bilionária", themes: ["ma"] },
+  { text: "Banco assume o controle de fintech após oferta", themes: ["ma"] },
+  // exclusao M&A: 'adquirir' de consumo, nao fusao
+  { text: "Veja como adquirir um imóvel financiado pela Caixa", themes: [] },
+  // Empreendedorismo
+  { text: "Fundador conta como abriu a empresa do zero", themes: ["empreendedorismo"] },
+  // Politica & Regulacao
+  { text: "Congresso aprova projeto de lei sobre marco regulatório", themes: ["politica"] },
+  // Inovacao & IA
+  { text: "Startup lança modelo de inteligência artificial generativa", themes: ["empreendedorismo", "inovacao"] },
+  // exclusao inovacao: 'patente' militar, nao P&D
+  { text: "Coronel perde a patente militar após decisão do STM", themes: [] },
+  // Investimentos
+  { text: "Companhia capta R$ 50 milhões em rodada série A", themes: ["investimentos"] },
+  // multi-lente: startup + IA + aporte
+  { text: "Startup de inteligência artificial recebe aporte de fundo", themes: ["empreendedorismo", "inovacao", "investimentos"] },
+  // exclusao investimentos: 'ações' = iniciativas, nao bolsa
+  { text: "Prefeitura anuncia ações de combate à dengue", themes: [] },
+];

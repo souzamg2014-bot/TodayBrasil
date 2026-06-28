@@ -13,7 +13,10 @@
     "ingest:datajud": "node scripts/ingest-datajud.mjs",
     "ingest:caged": "node scripts/ingest-caged.mjs",
     "ingest:ibama": "node scripts/ingest-ibama.mjs",
-    "backfill:themes": "node scripts/backfill-themes.mjs"
+    "backfill:themes": "node scripts/backfill-themes.mjs",
+    "audit:filters": "node scripts/audit-filters.mjs",
+    "caderno:brief": "node scripts/caderno-brief.mjs",
+    "caderno:insert": "node scripts/caderno-insert.mjs caderno-articles.json"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

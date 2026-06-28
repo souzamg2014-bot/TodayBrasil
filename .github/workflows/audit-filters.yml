@@ -1,0 +1,38 @@
+name: Auditoria dos filtros
+
+# Os filtros (setor + lentes) sao o coracao do produto. Esta auditoria roda
+# sozinha e quebra o build se alguem regredir a classificacao, criar drift
+# entre o classificador e a taxonomia da UI, ou sujar as regras.
+# Nao precisa de segredos: e logica pura (sem banco).
+
+on:
+  push:
+    paths:
+      - "scripts/classify.mjs"
+      - "scripts/themes.mjs"
+      - "scripts/fixtures.filters.mjs"
+      - "scripts/audit-filters.mjs"
+      - "src/lib/sectors.ts"
+      - "src/lib/themes.ts"
+  pull_request:
+    paths:
+      - "scripts/classify.mjs"
+      - "scripts/themes.mjs"
+      - "scripts/fixtures.filters.mjs"
+      - "scripts/audit-filters.mjs"
+      - "src/lib/sectors.ts"
+      - "src/lib/themes.ts"
+  schedule:
+    - cron: "0 9 * * 1" # toda segunda 06h BRT, como rede de seguranca
+  workflow_dispatch: {}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run audit:filters
