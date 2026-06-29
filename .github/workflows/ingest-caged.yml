@@ -2,7 +2,7 @@ name: Ingest CAGED (Mercado de Trabalho)
 
 on:
   schedule:
-    - cron: "0 12 * * 1" # semanal, segunda 12:00 UTC (dado e mensal)
+    - cron: "0 12 * * 1,4" # 2x/semana, segunda e quinta 12:00 UTC (cabe na retencao de 5d das lentes)
   workflow_dispatch: {}
 
 jobs:

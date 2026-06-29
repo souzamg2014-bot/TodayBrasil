@@ -2,7 +2,7 @@ name: Ingest IBAMA (ESG)
 
 on:
   schedule:
-    - cron: "0 13 * * 1" # semanal, segunda 13:00 UTC (arquivo de ~112MB, muda pouco)
+    - cron: "0 13 * * 1,4" # 2x/semana, segunda e quinta 13:00 UTC (~112MB; cabe na retencao de 5d das lentes)
   workflow_dispatch: {}
 
 jobs:
