@@ -23,6 +23,8 @@ import { classify } from "./classify.mjs";
 const LANG = process.env.INGEST_LANG || "pt";
 // qual conjunto de fontes: pt (default) | intl | all
 const FEED_SET = process.env.FEED_SET || "pt";
+// retencao: apaga noticias com mais de N horas (data da noticia). 0 = nao limpa.
+const RETENTION_HOURS = Number(process.env.RETENTION_HOURS ?? 48);
 
 function loadEnv() {
   try {
@@ -265,6 +267,23 @@ async function getFeed(feed) {
   }
 }
 
+// Regra de retencao: apaga noticias com mais de RETENTION_HOURS horas, usando
+// a data da noticia (coalesce(published_at, created_at)) -- igual ao que o feed
+// mostra. Em PostgREST: published_at < corte OU (published_at null e created_at < corte).
+async function purgeOld() {
+  if (!RETENTION_HOURS || RETENTION_HOURS <= 0) return;
+  const cutoff = new Date(Date.now() - RETENTION_HOURS * 3600 * 1000).toISOString();
+  const { count, error } = await supabase
+    .from("news_articles")
+    .delete({ count: "exact" })
+    .or(`published_at.lt.${cutoff},and(published_at.is.null,created_at.lt.${cutoff})`);
+  if (error) {
+    console.error(`  erro na limpeza (>${RETENTION_HOURS}h): ${error.message}`);
+    return;
+  }
+  console.log(`\nLimpeza: ${count ?? 0} noticias com mais de ${RETENTION_HOURS}h apagadas (corte ${cutoff}).`);
+}
+
 async function main() {
   const feeds = FEEDS;
   let total = 0;
@@ -322,6 +341,8 @@ async function main() {
     console.log(`\nSem feed (${failed.length}):`);
     for (const u of failed) console.log(`  - ${u}`);
   }
+
+  await purgeOld();
 }
 
 main();
