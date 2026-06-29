@@ -25,6 +25,11 @@ const LANG = process.env.INGEST_LANG || "pt";
 const FEED_SET = process.env.FEED_SET || "pt";
 // retencao: apaga noticias com mais de N horas (data da noticia). 0 = nao limpa.
 const RETENTION_HOURS = Number(process.env.RETENTION_HOURS ?? 48);
+// lentes de dados primarios (datadas pelo EVENTO, nao pela coleta: CVM, falencias,
+// CAGED, IBAMA). Saem esporadicamente, entao tem retencao propria, contada pela
+// data de COLETA (created_at), nao pela data do evento.
+const LENTES_PRIMARIAS = ["cvm", "falimentar", "trabalho", "esg"];
+const LENTE_RETENTION_DAYS = Number(process.env.LENTE_RETENTION_DAYS ?? 5);
 
 function loadEnv() {
   try {
@@ -267,21 +272,36 @@ async function getFeed(feed) {
   }
 }
 
-// Regra de retencao: apaga noticias com mais de RETENTION_HOURS horas, usando
-// a data da noticia (coalesce(published_at, created_at)) -- igual ao que o feed
-// mostra. Em PostgREST: published_at < corte OU (published_at null e created_at < corte).
+// Regra de retencao, em duas faixas:
+//  1) Noticias (fluxo RSS): expira por DATA DA NOTICIA (coalesce(published_at,
+//     created_at)) com RETENTION_HOURS, igual ao que o feed mostra. As lentes
+//     primarias ficam de fora dessa faixa (themes nao sobrepoe LENTES_PRIMARIAS).
+//  2) Lentes primarias (CVM/falencias/CAGED/IBAMA): datadas pelo evento (data
+//     antiga), entao expiram por DATA DE COLETA (created_at) com LENTE_RETENTION_DAYS.
 async function purgeOld() {
-  if (!RETENTION_HOURS || RETENTION_HOURS <= 0) return;
-  const cutoff = new Date(Date.now() - RETENTION_HOURS * 3600 * 1000).toISOString();
-  const { count, error } = await supabase
-    .from("news_articles")
-    .delete({ count: "exact" })
-    .or(`published_at.lt.${cutoff},and(published_at.is.null,created_at.lt.${cutoff})`);
-  if (error) {
-    console.error(`  erro na limpeza (>${RETENTION_HOURS}h): ${error.message}`);
-    return;
+  const lentesLit = `{${LENTES_PRIMARIAS.join(",")}}`;
+  // 1) fluxo de noticias, exceto as lentes primarias
+  if (RETENTION_HOURS > 0) {
+    const cutoff = new Date(Date.now() - RETENTION_HOURS * 3600 * 1000).toISOString();
+    const { count, error } = await supabase
+      .from("news_articles")
+      .delete({ count: "exact" })
+      .or(`published_at.lt.${cutoff},and(published_at.is.null,created_at.lt.${cutoff})`)
+      .not("themes", "ov", lentesLit);
+    if (error) console.error(`  erro na limpeza de noticias (>${RETENTION_HOURS}h): ${error.message}`);
+    else console.log(`\nLimpeza noticias: ${count ?? 0} com mais de ${RETENTION_HOURS}h apagadas (corte ${cutoff}).`);
   }
-  console.log(`\nLimpeza: ${count ?? 0} noticias com mais de ${RETENTION_HOURS}h apagadas (corte ${cutoff}).`);
+  // 2) lentes de dados primarios, por data de coleta
+  if (LENTE_RETENTION_DAYS > 0) {
+    const cutoffL = new Date(Date.now() - LENTE_RETENTION_DAYS * 86400 * 1000).toISOString();
+    const { count, error } = await supabase
+      .from("news_articles")
+      .delete({ count: "exact" })
+      .lt("created_at", cutoffL)
+      .overlaps("themes", LENTES_PRIMARIAS);
+    if (error) console.error(`  erro na limpeza de lentes (>${LENTE_RETENTION_DAYS}d): ${error.message}`);
+    else console.log(`Limpeza lentes: ${count ?? 0} de dados primarios com mais de ${LENTE_RETENTION_DAYS}d apagadas (corte ${cutoffL}).`);
+  }
 }
 
 async function main() {
