@@ -49,9 +49,12 @@ Princípios inegociáveis:
    fontes). **Post único** (sem carrossel): cada rede recebe um **título** e a **copy da legenda**.
    O usuário monta uma arte padrão por fora, então o texto é o entregável.
    - **linkedin**: `{ "titulo": "...", "legenda": "..." }`. Tom executivo, 1 a 3 parágrafos curtos.
-     Gancho + leitura do que importa + linha final "Fontes: Veículo, Veículo, ...". Até 3 hashtags no fim.
+     Gancho + leitura do que importa. **Não cite fontes na legenda** (as fontes ficam só no resumo
+     do site, em `destaques`/`fontes`). Feche com o CTA `Siga a Today Brasil para não perder nenhuma
+     notícia.` e, depois dele, até 3 hashtags.
    - **instagram**: `{ "titulo": "...", "legenda": "..." }`. Título curto e forte (vira a arte);
-     legenda enxuta e curiosa, com 5 a 10 hashtags relevantes ao fim.
+     legenda enxuta e curiosa. **Não cite fontes na legenda.** Feche com o CTA
+     `Siga @brasil.today para não perder nenhuma notícia.` e, depois dele, 5 a 10 hashtags relevantes.
 
 ## FORMATO DE SAÍDA (responda SÓ com este JSON array, sem texto fora dele)
 
@@ -71,8 +74,8 @@ Princípios inegociáveis:
     ],
     "n_fontes": 4,
     "social": {
-      "linkedin": { "titulo": "...", "legenda": "...\n\n...\n\nFontes: Valor, InfoMoney." },
-      "instagram": { "titulo": "...", "legenda": "...\n\n#fusoeseaquisicoes #negocios #brasil" }
+      "linkedin": { "titulo": "...", "legenda": "...\n\n...\n\nSiga a Today Brasil para não perder nenhuma notícia.\n\n#fusoeseaquisicoes #negocios" },
+      "instagram": { "titulo": "...", "legenda": "...\n\nSiga @brasil.today para não perder nenhuma notícia.\n\n#fusoeseaquisicoes #negocios #brasil" }
     }
   }
 ]

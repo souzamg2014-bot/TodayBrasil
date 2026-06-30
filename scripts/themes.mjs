@@ -63,6 +63,22 @@ export const THEME_RULES = {
       "adquirir um produto", "adquirir um aparelho", "adquirir um smartwatch",
       "adquirir um celular", "adquirir um carro", "adquirir um veiculo",
       "adquirir um imovel", "adquirir um plano", "adquirir ingresso",
+      // consumo/varejo/listicle (resenha, promocao, "como comprar")
+      "em promocao", "como comprar", "vale a pena comprar", "melhores estudios",
+      "melhores jogos", "renovar o setup", "selecao de notebooks",
+      "adquirir um notebook", "adquirir um computador", "adquirir um novo computador",
+      "adquirir um laptop", "adquirir o game", "adquirir games", "adquirir um game",
+      "necessidade de adquirir", "adquirir outro",
+      // conhecimento/competencia ("o conhecimento so se adquire...")
+      "se adquire",
+      // crime/consumo (receptacao, furto) e retrospectiva de carreira ("diz adeus")
+      "receptacao", "diz adeus",
+      // direito adquirido (juridico, nao M&A) - ex.: penduricalhos adquiridos
+      "direitos adquiridos", "direito adquirido", "adquiridos antes", "adquirido antes",
+      // aquisicao de usuarios/engajamento (marketing de app) e compras/procurement
+      "aquisicao e engajamento", "aquisicao e o engajamento", "aquisicao e retencao",
+      "aquisicoes emergenciais", "aquisicao emergencial",
+      "aquisicao de materiais", "aquisicao de material", "aquisicao de insumos",
     ],
   },
 

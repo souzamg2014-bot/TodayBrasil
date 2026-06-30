@@ -48,8 +48,30 @@ export const THEME_CASES = [
   // M&A
   { text: "Empresa adquire rival em fusão bilionária", themes: ["ma"] },
   { text: "Banco assume o controle de fintech após oferta", themes: ["ma"] },
+  // M&A reais que NAO podem quebrar com as exclusoes (positivos a blindar)
+  { text: "DM adquire FortBrasil e expande atuação em private label", themes: ["ma"] },
+  { text: "Cencosud anuncia acordo para adquirir 100% dos supermercados St. Marche", themes: ["ma"] },
+  { text: "Startup paranaense é adquirida pelo Grupo Santa Cruz", themes: ["empreendedorismo", "ma"] },
   // exclusao M&A: 'adquirir' de consumo, nao fusao
   { text: "Veja como adquirir um imóvel financiado pela Caixa", themes: [] },
+  // exclusao M&A: consumo/varejo/listicle ("promoção", "como comprar", ranking)
+  { text: "Hora de renovar o setup: notebooks em promoção para adquirir um novo computador", themes: [] },
+  { text: "Como comprar GTA 6 parcelado? Veja opções para adquirir o game", themes: [] },
+  { text: "13 melhores estúdios do Xbox: a ofensiva da Microsoft em aquisições de estúdios", themes: [] },
+  // exclusao M&A: direito adquirido (juridico), nao fusao
+  { text: "STF tem maioria para liberar penduricalhos adquiridos antes de restrição", themes: ["politica"] },
+  // exclusao M&A: conhecimento que se adquire
+  { text: "Esse tipo de conhecimento sobre o mercado só se adquire com experiência", themes: [] },
+  // exclusao M&A: aquisicao de usuarios/engajamento (marketing de app)
+  { text: "Copa do Mundo impulsiona aquisição e engajamento em aplicativos de streaming", themes: [] },
+  // exclusao M&A: compras/procurement, nao fusao
+  { text: "Planejamento de compras na construção: evite aquisições emergenciais", themes: [] },
+  // exclusao M&A: consumo (necessidade de adquirir outro aparelho)
+  { text: "Como deixar a TV antiga rápida sem a necessidade de adquirir outro aparelho", themes: [] },
+  // exclusao M&A: crime, nao fusao (receptação)
+  { text: "Jovem compra celular adquirido por R$ 1.800 e é autuado por receptação", themes: [] },
+  // exclusao M&A: retrospectiva de carreira, nao um negócio em curso
+  { text: "Após US$ 90 bilhões em aquisições, Bob Iger diz adeus à Disney", themes: [] },
   // Empreendedorismo
   { text: "Fundador conta como abriu a empresa do zero", themes: ["empreendedorismo"] },
   // Politica & Regulacao

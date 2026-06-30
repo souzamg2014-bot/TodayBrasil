@@ -49,11 +49,7 @@ function socialMd(a) {
   md += `## Instagram\n\n`;
   if (ig.titulo) md += `**${ig.titulo}**\n\n`;
   md += `${ig.legenda ?? ""}\n`;
-  // fontes ao final, p/ conferencia
-  if (Array.isArray(a.fontes) && a.fontes.length) {
-    md += `\n## Fontes\n\n`;
-    for (const f of a.fontes) md += `- [${f.titulo ?? f.url}](${f.url})\n`;
-  }
+  // sem fontes no social: as fontes ficam so no resumo do site (campos fontes/destaques).
   return md;
 }
 
