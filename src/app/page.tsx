@@ -52,6 +52,7 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [atHome, setAtHome] = useState(false); // logo -> volta pra porta (home)
   const [showPlans, setShowPlans] = useState(false);
+  const [pdfItem, setPdfItem] = useState<Item | null>(null); // leitor de PDF da CVM
   const paid = isPaid(plan, planExp);
   const premium = hasResumos(plan, planExp);
 
@@ -330,6 +331,12 @@ export default function Home() {
                       href={it.url ?? "#"}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => {
+                        if ((it.themes ?? []).includes("cvm") && it.url) {
+                          e.preventDefault();
+                          setPdfItem(it);
+                        }
+                      }}
                     >
                       <div className="rmeta">
                         <span className="rsource">{it.source}</span>
@@ -407,6 +414,49 @@ export default function Home() {
       </div>
 
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} onChoose={goCheckout} />}
+
+      {pdfItem && pdfItem.url && (
+        <div className="pdfback" onClick={() => setPdfItem(null)}>
+          <div className="pdfmodal" onClick={(e) => e.stopPropagation()}>
+            <div className="pdfhead">
+              <div className="pdfmeta">
+                <span className="rsource">{pdfItem.source}</span>
+                {pdfItem.published_at && (
+                  <>
+                    <span className="dot">•</span>
+                    <span>{timeAgo(pdfItem.published_at)}</span>
+                  </>
+                )}
+                <h3>{pdfItem.title}</h3>
+              </div>
+              <div className="pdfacts">
+                <a
+                  className="pdfbtn"
+                  href={`/api/cvm-pdf?url=${encodeURIComponent(pdfItem.url)}&dl=1`}
+                >
+                  ⬇ Baixar PDF
+                </a>
+                <a
+                  className="pdfbtn ghost"
+                  href={pdfItem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Abrir original
+                </a>
+                <button className="pdfclose" onClick={() => setPdfItem(null)} title="Fechar">
+                  ✕
+                </button>
+              </div>
+            </div>
+            <iframe
+              className="pdfframe"
+              src={`/api/cvm-pdf?url=${encodeURIComponent(pdfItem.url)}`}
+              title={pdfItem.title}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

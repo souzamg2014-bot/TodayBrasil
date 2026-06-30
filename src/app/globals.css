@@ -739,3 +739,42 @@ a { color: inherit; text-decoration: none; }
 .resdestaques li::before { content: "▪"; color: var(--muted); font-size: 11px; }
 .resfonte { font-size: 12px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
 .resfonte:hover { color: var(--text); }
+
+/* ===================== leitor de PDF (CVM) ===================== */
+.pdfback {
+  position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.pdfmodal {
+  position: relative; background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); width: min(920px, 96vw); height: min(92vh, 1100px);
+  display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+.pdfhead {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding: 16px 18px; border-bottom: 1px solid var(--border); flex: 0 0 auto;
+}
+.pdfmeta { min-width: 0; }
+.pdfmeta .rsource { font-weight: 700; font-size: 12px; color: var(--muted); }
+.pdfmeta .dot { color: var(--muted); margin: 0 6px; }
+.pdfmeta h3 { font-family: var(--serif); font-size: 19px; line-height: 1.3; margin: 6px 0 0; color: var(--text); }
+.pdfacts { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.pdfbtn {
+  background: var(--gold); color: var(--on-accent); border: 1px solid var(--accent);
+  border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 700;
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+}
+.pdfbtn:hover { filter: brightness(1.05); }
+.pdfbtn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+.pdfbtn.ghost:hover { background: var(--accent-soft); filter: none; }
+.pdfclose {
+  background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted);
+  font-size: 16px; line-height: 1; width: 36px; height: 36px; cursor: pointer; flex: 0 0 auto;
+}
+.pdfclose:hover { color: var(--text); }
+.pdfframe { flex: 1 1 auto; width: 100%; border: none; background: #525659; }
+@media (max-width: 640px) {
+  .pdfhead { flex-direction: column; gap: 12px; }
+  .pdfacts { width: 100%; }
+  .pdfbtn { flex: 1; text-align: center; }
+}
