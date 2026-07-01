@@ -778,3 +778,54 @@ a { color: inherit; text-decoration: none; }
   .pdfacts { width: 100%; }
   .pdfbtn { flex: 1; text-align: center; }
 }
+
+/* ===================== CENTRAL DE ALERTAS ===================== */
+.alsec { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0 0 12px; }
+.alform { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.alinput {
+  padding: 9px 11px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--panel); color: var(--text); font-size: 0.92rem; min-width: 150px;
+}
+.alinput:focus { outline: none; border-color: var(--accent); }
+.alcheck { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 0.88rem; }
+.allist { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.alrule {
+  display: flex; align-items: center; gap: 9px; padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--panel);
+}
+.alkind {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--muted); font-weight: 700;
+}
+.alval { color: var(--text); font-weight: 600; }
+.albadge {
+  font-size: 0.68rem; padding: 2px 7px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--text-soft); font-weight: 700;
+}
+.aldel {
+  margin-left: auto; border: none; background: none; cursor: pointer;
+  color: var(--muted); font-size: 1.25rem; line-height: 1; padding: 0 4px;
+}
+.aldel:hover { color: var(--text); }
+.alpush {
+  margin-top: 14px; padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--panel); color: var(--text);
+  cursor: pointer; font-size: 0.9rem; width: 100%;
+}
+.alpush:hover { border-color: var(--accent); }
+.alnothead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.alunread {
+  font-size: 0.72rem; padding: 1px 8px; border-radius: 999px; vertical-align: middle;
+  background: var(--accent); color: var(--on-accent); font-weight: 700;
+}
+.albtnlink { border: none; background: none; cursor: pointer; }
+.alnotif {
+  padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--panel); cursor: pointer;
+}
+.alnotif.alnew { border-left: 3px solid var(--accent); background: var(--panel-2); }
+.alnmeta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.alntime { font-size: 0.74rem; color: var(--muted); margin-left: auto; }
+.alntitle { display: block; color: var(--text); font-weight: 600; text-decoration: none; line-height: 1.35; }
+.alntitle:hover { text-decoration: underline; }
+.alnbody { color: var(--text-soft); font-size: 0.88rem; margin: 4px 0 0; }

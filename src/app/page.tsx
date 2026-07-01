@@ -61,6 +61,11 @@ export default function Home() {
     else setShowPlans(true);
   };
 
+  const openAlertas = () => {
+    if (paid) window.location.href = "/alertas";
+    else setShowPlans(true);
+  };
+
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
@@ -236,6 +241,9 @@ export default function Home() {
             </h1>
             <button className="cadernobtn" onClick={openResumos}>
               Resumos Inteligentes
+            </button>
+            <button className="cadernobtn" onClick={openAlertas}>
+              Alertas
             </button>
             <div className="scope">
               <button
