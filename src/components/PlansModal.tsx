@@ -20,7 +20,6 @@ export default function PlansModal({
 
         <div className="plans">
           <div className="plancard hot">
-            <span className="planflag">Completo</span>
             <h3>{p.label}</h3>
             <div className="price">
               <span>R$</span>{p.price.toFixed(2).replace(".", ",")}<small>/mês</small>

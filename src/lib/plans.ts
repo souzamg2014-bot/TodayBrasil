@@ -18,7 +18,7 @@ export const PLANS = {
       "Central de Alertas (no site e por push)",
       "Resumos Inteligentes (manhã e tarde)",
       "Fontes primárias: CVM, falências, CAGED, IBAMA",
-      "Notícias do Mundo (EN/ES)",
+      "Notícias do Mundo por país",
     ],
   },
   // legado: assinantes antigos com plano 'caderno' seguem valendo como pagos.
