@@ -65,14 +65,29 @@ function ruleMatchesArticle(rule, art) {
 }
 
 async function main() {
-  // 1) regras ativas + plano do dono (uma chamada, com join)
+  // 1) regras ativas
   const { data: rules, error: rErr } = await supabase
     .from("alert_rules")
-    .select("id, user_id, kind, value, label, channels, active, profiles!inner(plan, plan_expires_at)")
+    .select("id, user_id, kind, value, label, channels, active")
     .eq("active", true);
   if (rErr) { console.error("erro lendo alert_rules:", rErr.message); process.exit(1); }
+  if (!rules?.length) { console.log("Sem regras ativas. Nada a fazer."); return; }
 
-  const liveRules = (rules ?? []).filter((r) => isPaid(r.profiles?.plan, r.profiles?.plan_expires_at));
+  // 1b) plano dos donos. alert_rules.user_id e profiles.id ambos referenciam
+  // auth.users (nao ha FK entre as duas), entao o PostgREST nao faz embed:
+  // buscamos os profiles a parte e filtramos por plano pago em memoria.
+  const userIds = [...new Set(rules.map((r) => r.user_id))];
+  const { data: profs, error: pErr } = await supabase
+    .from("profiles")
+    .select("id, plan, plan_expires_at")
+    .in("id", userIds);
+  if (pErr) { console.error("erro lendo profiles:", pErr.message); process.exit(1); }
+  const planById = new Map((profs ?? []).map((p) => [p.id, p]));
+
+  const liveRules = rules.filter((r) => {
+    const p = planById.get(r.user_id);
+    return isPaid(p?.plan, p?.plan_expires_at);
+  });
   if (liveRules.length === 0) {
     console.log("Sem regras ativas de usuarios pagos. Nada a fazer.");
     return;
