@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import PWARegister from "@/components/PWARegister";
+import LangProvider from "@/components/LangProvider";
 
 // Masthead de jornal classico (Didone, alto contraste)
 const playfair = Playfair_Display({
@@ -38,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <PWARegister />
-        {children}
+        <LangProvider>{children}</LangProvider>
       </body>
     </html>
   );

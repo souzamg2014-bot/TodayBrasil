@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { getSector } from "@/lib/sectors";
+import { sectorLabel } from "@/lib/sectors";
 import { THEMES, getTheme } from "@/lib/themes";
-import { COUNTRIES } from "@/lib/countries";
+import { COUNTRIES, countryLabel } from "@/lib/countries";
 import { timeAgo } from "@/lib/time";
 import { supabase } from "@/lib/supabase";
 import Entrance from "@/components/Entrance";
 import PlansModal from "@/components/PlansModal";
 import ThemeToggle from "@/components/ThemeToggle";
+import LangToggle from "@/components/LangToggle";
+import { useLang } from "@/components/LangProvider";
 import { isPaid, FREE_LIMIT, type Plan } from "@/lib/plans";
 
 type Item = {
@@ -31,6 +33,7 @@ type Stats = {
 };
 
 export default function Home() {
+  const { lang, t } = useLang();
   // multi-selecao de setores (vazio = tudo)
   const [selected, setSelected] = useState<string[]>([]);
   // lente ativa (uma de cada vez; null = nenhuma)
@@ -244,41 +247,42 @@ export default function Home() {
           <div className="acct">
             <span className="acctmail">{session.user.email}</span>
             <span className={`plantag ${paid ? "on" : ""}`}>
-              {paid ? "Pro" : "Grátis"}
+              {paid ? "Pro" : t("free")}
             </span>
             {isAdmin && <a className="adminlink" href="/admin">Admin</a>}
+            <LangToggle />
             <ThemeToggle />
             {!paid && (
               <button className="assinar" onClick={() => setShowPlans(true)}>
-                Assinar
+                {t("assinar")}
               </button>
             )}
             <button className="sair" onClick={() => supabase.auth.signOut()}>
-              Sair
+              {t("sair")}
             </button>
           </div>
           <div className="brand">
-            <h1 className="logobtn" onClick={() => setAtHome(true)} title="Início">
+            <h1 className="logobtn" onClick={() => setAtHome(true)} title={t("inicio")}>
               Today<em>Brasil</em>
             </h1>
             <button className="cadernobtn" onClick={openResumos}>
-              Resumos Inteligentes
+              {t("resumos")}
             </button>
             <button className="cadernobtn" onClick={openAlertas}>
-              Alertas
+              {t("alertas")}
             </button>
             <div className="scope">
               <button
                 className={`scopebtn ${scope === "br" ? "on" : ""}`}
                 onClick={() => switchScope("br")}
               >
-                Brasil
+                {t("brasil")}
               </button>
               <button
                 className={`scopebtn ${scope === "mundo" ? "on" : ""}`}
                 onClick={() => switchScope("mundo")}
               >
-                Mundo
+                {t("mundo")}
               </button>
             </div>
           </div>
@@ -287,10 +291,10 @@ export default function Home() {
             disabled={!paid}
             placeholder={
               !paid
-                ? "Busca disponível no Pro"
+                ? t("searchLocked")
                 : scope === "mundo"
-                ? "Buscar nas notícias internacionais..."
-                : "Buscar no título e no resumo das notícias..."
+                ? t("searchWorld")
+                : t("searchBr")
             }
             value={paid ? q : ""}
             onChange={(e) => setQ(e.target.value)}
@@ -308,18 +312,21 @@ export default function Home() {
             </button>
             <div className="lenses" ref={lensesRef} onScroll={updateArrows} onWheel={onLensesWheel}>
               <span className="lenslabel">
-                Temas <em>PRO</em>
+                {t("temas")} <em>PRO</em>
               </span>
-              {THEMES.map((t) => (
-                <button
-                  key={t.id}
-                  className={`lens ${theme === t.id ? "active" : ""} ${paid ? "" : "locked"}`}
-                  title={paid ? t.blurb : `${t.label} — disponível no Pro`}
-                  onClick={() => (paid ? toggleTheme(t.id) : setShowPlans(true))}
-                >
-                  {t.label}
-                </button>
-              ))}
+              {THEMES.map((th) => {
+                const label = lang === "en" ? th.en : th.label;
+                return (
+                  <button
+                    key={th.id}
+                    className={`lens ${theme === th.id ? "active" : ""} ${paid ? "" : "locked"}`}
+                    title={paid ? th.blurb : `${label} · ${t("availablePro")}`}
+                    onClick={() => (paid ? toggleTheme(th.id) : setShowPlans(true))}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
             <button
               className={`lensnav right ${atEnd ? "hidden" : ""}`}
@@ -333,12 +340,10 @@ export default function Home() {
 
           {selected.length > 0 && (
             <div className="selinfo">
-              Filtrando:{" "}
-              {selected
-                .map((id) => getSector(id)?.label ?? id)
-                .join(", ")}
+              {t("filtering")}{" "}
+              {selected.map((id) => sectorLabel(id, lang)).join(", ")}
               <button className="clear" onClick={() => setSelected([])}>
-                limpar
+                {t("clear")}
               </button>
             </div>
           )}
@@ -348,9 +353,9 @@ export default function Home() {
       <div className="shell layout">
         <main className="feed">
           {items.length === 0 && loading ? (
-            <div className="state">Carregando...</div>
+            <div className="state">{t("loading")}</div>
           ) : items.length === 0 ? (
-            <div className="state">Nenhuma notícia encontrada. Tente outro filtro.</div>
+            <div className="state">{t("empty")}</div>
           ) : (
             <>
               <ul className="list">
@@ -381,12 +386,12 @@ export default function Home() {
                           if (!lm) return null;
                           return (
                             <span key={th} className="ltag">
-                              {lm.label}
+                              {lang === "en" ? lm.en : lm.label}
                             </span>
                           );
                         })}
                         <span className="rtag">
-                          {getSector(it.sector)?.label ?? it.sector}
+                          {sectorLabel(it.sector, lang)}
                         </span>
                       </div>
                       <h3>{it.title}</h3>
@@ -397,18 +402,15 @@ export default function Home() {
               </ul>
               {paid && hasMore && (
                 <button className="more" disabled={loading} onClick={() => load(page + 1, false)}>
-                  {loading ? "Carregando..." : "Carregar mais"}
+                  {loading ? t("loading") : t("loadMore")}
                 </button>
               )}
               {!paid && items.length >= FREE_LIMIT && (
                 <div className="paywall">
-                  <h3>Você viu as {FREE_LIMIT} primeiras.</h3>
-                  <p>
-                    Assine o <strong>Pro</strong> por <strong>R$ 9,90/mês</strong> e libere o feed
-                    completo, a busca, os temas e as fontes primárias (CVM, falências, CAGED, IBAMA).
-                  </p>
+                  <h3>{t("paywallSeen", { n: FREE_LIMIT })}</h3>
+                  <p>{t("paywallCopy")}</p>
                   <button className="assinarbig" onClick={() => setShowPlans(true)}>
-                    Ver planos
+                    {t("seePlans")}
                   </button>
                 </div>
               )}
@@ -419,12 +421,12 @@ export default function Home() {
         <aside className="side">
           {scope === "mundo" && (
             <section className="panel">
-              <h4>Países</h4>
-              <p className="hint">clique pra filtrar o Mundo</p>
+              <h4>{t("countries")}</h4>
+              <p className="hint">{t("clickCountry")}</p>
               <ul className="rank">
                 <li>
                   <button className={`rankrow ${!country ? "on" : ""}`} onClick={() => setCountry(null)}>
-                    <span className="rl">🌐 Todos os países</span>
+                    <span className="rl">🌐 {t("allCountries")}</span>
                   </button>
                 </li>
                 {COUNTRIES.map((c) => {
@@ -435,7 +437,7 @@ export default function Home() {
                         className={`rankrow ${country === c.id ? "on" : ""}`}
                         onClick={() => toggleCountry(c.id)}
                       >
-                        <span className="rl">{c.flag} {c.label}</span>
+                        <span className="rl">{c.flag} {countryLabel(c.id, lang)}</span>
                         {n > 0 && <span className="rn">{n}</span>}
                       </button>
                     </li>
@@ -445,11 +447,10 @@ export default function Home() {
             </section>
           )}
           <section className="panel">
-            <h4>Setores em alta</h4>
-            <p className="hint">últimos 7 dias · clique pra filtrar</p>
+            <h4>{t("trendingSectors")}</h4>
+            <p className="hint">{t("last7")}</p>
             <ul className="rank">
               {(stats?.sectors ?? []).map((s) => {
-                const meta = getSector(s.sector);
                 const max = stats?.sectors?.[0]?.n || 1;
                 return (
                   <li key={s.sector}>
@@ -457,14 +458,14 @@ export default function Home() {
                       className={`rankrow ${isOn(s.sector) ? "on" : ""}`}
                       onClick={() => toggleSector(s.sector)}
                     >
-                      <span className="rl">{meta?.label ?? s.sector}</span>
+                      <span className="rl">{sectorLabel(s.sector, lang)}</span>
                       <span className="rn">{s.n}</span>
                       <span className="bar" style={{ width: `${(s.n / max) * 100}%` }} />
                     </button>
                   </li>
                 );
               })}
-              {!stats && <li className="hint">carregando...</li>}
+              {!stats && <li className="hint">{t("loadingShort")}</li>}
             </ul>
           </section>
         </aside>
