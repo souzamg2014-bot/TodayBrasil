@@ -64,6 +64,33 @@ function norm(s = "") {
   );
 }
 
+// rotulos oficiais p/ o texto do alerta (espelham src/lib/themes.ts e sectors.ts).
+// Nao dependemos do `label` salvo na regra: regras antigas podem estar sem ele.
+const THEME_LABELS = {
+  ma: "M&A", empreendedorismo: "Empreendedorismo", politica: "Política & Regulação",
+  inovacao: "Inovação & IA", investimentos: "Investimentos", cvm: "Fatos Relevantes CVM",
+  falimentar: "Movimento Falimentar", trabalho: "Mercado de Trabalho", esg: "ESG",
+};
+const SECTOR_LABELS = {
+  agronegocio: "Agronegócio", "alimentos-bebidas": "Alimentos e Bebidas",
+  "comercio-varejista": "Varejo", "comercio-atacadista": "Atacado e Distribuição",
+  industria: "Indústria", "construcao-imobiliario": "Construção e Imobiliário",
+  "tecnologia-software": "Tecnologia", telecomunicacoes: "Telecom",
+  "servicos-financeiros": "Financeiro", "servicos-empresariais": "Serviços Empresariais",
+  "saude-bem-estar": "Saúde", educacao: "Educação",
+  "transporte-logistica": "Transporte e Logística", "energia-recursos": "Energia e Recursos",
+  "turismo-hotelaria": "Turismo e Hotelaria", "servicos-domesticos": "Serviços e Pequenos Negócios",
+  "economia-criativa": "Economia Criativa", "setor-publico-terceiro": "Setor Público e ONGs",
+  geral: "Geral",
+};
+
+// nome de exibicao da regra. keyword: texto digitado (label) ou value.
+function displayLabel(rule) {
+  if (rule.kind === "sector") return SECTOR_LABELS[rule.value] || rule.label || rule.value;
+  if (rule.kind === "lente") return THEME_LABELS[rule.value] || rule.label || rule.value;
+  return rule.label || rule.value; // keyword
+}
+
 function ruleMatchesArticle(rule, art) {
   if (rule.kind === "sector") return art.sector === rule.value;
   if (rule.kind === "lente") return Array.isArray(art.themes) && art.themes.includes(rule.value);
@@ -124,7 +151,7 @@ async function main() {
   for (const rule of liveRules) {
     const matches = arts.filter((a) => ruleMatchesArticle(rule, a));
     if (matches.length === 0) continue;
-    const label = rule.label || rule.value;
+    const label = displayLabel(rule);
     wantsPush.set(rule.id, Array.isArray(rule.channels) && rule.channels.includes("push"));
 
     if (rule.kind === "keyword") {
