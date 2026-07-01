@@ -35,31 +35,35 @@ export async function POST(request: Request) {
   catch { return NextResponse.json({ error: "json invalido" }, { status: 400 }); }
 
   const kind = (body.kind ?? "").trim();
-  const value = (body.value ?? "").trim();
+  const rawValue = (body.value ?? "").trim();
   if (!KINDS.has(kind)) return NextResponse.json({ error: "kind invalido" }, { status: 400 });
-  if (!value || value.length > 120) return NextResponse.json({ error: "value invalido" }, { status: 400 });
+  if (!rawValue || rawValue.length > 120) return NextResponse.json({ error: "value invalido" }, { status: 400 });
+  // normaliza o value (minusculo) p/ unicidade e match case-insensitive; guarda o
+  // texto original em `label` para exibir a palavra-chave como o usuario digitou.
+  const value = rawValue.toLowerCase();
+  const label = body.label?.slice(0, 80) ?? (kind === "keyword" ? rawValue : null);
 
   const channels = (Array.isArray(body.channels) ? body.channels : ["in_app"])
     .filter((c) => CHANNELS.has(c));
   if (!channels.includes("in_app")) channels.unshift("in_app"); // in_app sempre presente
 
-  // teto de regras
-  const { count } = await ctx.admin
+  // teto de regras: so bloqueia se for regra NOVA (nao um update da mesma kind+value)
+  const { data: existing } = await ctx.admin
     .from("alert_rules")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", ctx.userId);
-  if ((count ?? 0) >= MAX_RULES) {
-    return NextResponse.json({ error: "limite de regras atingido" }, { status: 409 });
+    .select("id")
+    .eq("user_id", ctx.userId).eq("kind", kind).eq("value", value)
+    .maybeSingle();
+  if (!existing) {
+    const { count } = await ctx.admin
+      .from("alert_rules")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", ctx.userId);
+    if ((count ?? 0) >= MAX_RULES) {
+      return NextResponse.json({ error: "limite de regras atingido" }, { status: 409 });
+    }
   }
 
-  const row = {
-    user_id: ctx.userId,
-    kind,
-    value: kind === "keyword" ? value : value.toLowerCase(),
-    label: body.label?.slice(0, 80) ?? null,
-    channels,
-    active: true,
-  };
+  const row = { user_id: ctx.userId, kind, value, label, channels, active: true };
   const { data, error } = await ctx.admin
     .from("alert_rules")
     .upsert(row, { onConflict: "user_id,kind,value" })

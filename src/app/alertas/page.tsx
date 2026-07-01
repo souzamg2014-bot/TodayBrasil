@@ -22,7 +22,7 @@ const THEME_LABEL = new Map(THEMES.map((t) => [t.id, t.label]));
 function ruleText(r: Rule) {
   if (r.kind === "sector") return SECTOR_LABEL.get(r.value) ?? r.value;
   if (r.kind === "lente") return THEME_LABEL.get(r.value) ?? r.value;
-  return r.value;
+  return r.label || r.value; // keyword: mostra o texto original digitado
 }
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);

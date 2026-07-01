@@ -40,45 +40,94 @@ function has(text, term) {
 // Cada lente: any = sinais positivos (basta 1). not = corta ruido (se algum
 // bater, a lente nao se aplica). Termos ja normalizados (sem acento, minusculo).
 export const THEME_RULES = {
-  // M&A - Fusoes e Aquisicoes
+  // M&A - Fusoes e Aquisicoes.
+  // Precisao > recall: os prefixos soltos "aquisic"/"adquir" pegavam procurement
+  // ("ONU adquire sacos"), juridico ("direito adquirido") e generico. Agora exige
+  // objeto corporativo (empresa/controle/participacao/fatia) ou verbo ATIVO como
+  // palavra inteira ("adquire "), com blocklist de procurement/consumo/juridico.
   ma: {
     any: [
-      "fusao", "fusoes", "aquisic", "adquir",
+      // sinais fortes, standalone
+      "fusao", "fusoes", "megafusao", "fusoes e aquisic", "m&a", "takeover", "take over",
+      "joint venture", "oferta hostil", "oferta publica de aquisic", "opa para",
+      // incorporacao societaria (nao "incorporacao de tecnologia")
       "incorporacao de acoes", "incorporacao societaria", "incorporacao reversa",
-      "joint venture", "oferta hostil", "oferta publica de aquisic",
-      "due diligence", "participacao acionaria", "controle acionario",
-      "assume o controle", "compra de controle", "m&a",
-      "fusoes e aquisic", "megafusao", "takeover", "take over",
-      "comprou fatia", "comprar fatia", "comprou a participac", "aporte para adquir",
+      "incorporacao total", "incorporacao da participac",
+      // controle / participacao acionaria
+      "participacao acionaria", "controle acionario",
+      "assume o controle", "assumiu o controle", "assumir o controle",
+      "compra de controle", "compra do controle", "compra o controle",
+      // fatia / participacao
+      "comprar fatia", "comprou fatia", "compra de fatia", "vende fatia", "venda de fatia",
+      "aquisicao de fatia", "adquiriu fatia", "adquire fatia", "adquirir fatia",
+      "comprou a participac", "comprar a participac", "vender a participac",
+      "adquiriu participac", "adquire participac", "adquirir participac",
+      // aquisicao corporativa: exige objeto (da/do empresa, controle, participacao)
+      "aquisicao da", "aquisicao do", "aquisicao de participac", "aquisicao de controle",
+      "aquisicao bilionaria", "aquisicao milionaria", "aquisicao estrategica",
+      "anuncia aquisic", "anunciou a aquisic", "anuncio da aquisic", "anuncio de aquisic",
+      "concluiu a aquisic", "concluir a aquisic", "fechou a aquisic", "fechar a aquisic",
+      "acordo de aquisic", "processo de aquisic", "para aquisic da", "para aquisic do",
+      // verbo adquirir ATIVO como palavra inteira (evita "adquirido/adquirida" juridico)
+      "adquire ", "adquiriu ", "adquirir ",
+      // voz passiva de M&A: "empresa e adquirida por/pelo X" (nao "direito adquirido")
+      "adquirida por", "adquirida pelo", "adquirida pela",
+      "adquirido por", "adquirido pelo", "adquirido pela",
+      "adquiridos por", "adquiridas por",
+      // compra de unidade / operacao / rival / fornecedora (M&A, nao consumo)
+      "comprar unidade", "comprar a unidade", "compra da unidade", "compra de unidade",
+      "comprar operacao", "comprar a operacao", "compra da operacao", "aquisicao da operacao",
+      "acerta compra", "acerta a compra", "acordo para comprar",
+      "compra de fornecedora", "compra de rival", "compra da rival",
+      // OPA (oferta publica de aquisicao / fechamento de capital)
+      "opa ", "edital de opa", "lanca opa", "encerra opa", "opa de aquisic",
     ],
-    // exclusoes: "aquisicao/adquirir" no sentido de marketing/consumo, nao M&A
+    // exclusoes: sentidos que NAO sao M&A corporativo.
     not: [
+      // marketing / consumo
       "custo de aquisic", "poder de aquisic", "aquisicao de clientes",
       "aquisicao de novos clientes", "aquisicao de usuarios", "aquisicao de leads",
       "aquisicao de habito", "aquisicao de conhecimento", "aquisicao de talento",
       "aquisicao de imovel", "aquisicao de imoveis", "aquisicao da casa propria",
+      "aquisicao e engajamento", "aquisicao e o engajamento", "aquisicao e retencao",
+      // procurement / compra publica de bens (nao e deal societario)
+      "aquisicoes emergenciais", "aquisicao emergencial", "aquisicao de materiais",
+      "aquisicao de material", "aquisicao de insumos", "aquisicao de vacinas",
+      "aquisicao de medicamentos", "aquisicao de doses", "aquisicao de equipamentos",
+      "aquisicao de terras", "aquisicao de terra", "aquisicao de alimentos",
+      "aquisicao da tecnologia", "aquisicao de tecnologia",
+      // verbo ativo em sentido de compra/consumo/procurement
       "adquirir conhecimento", "adquirir o habito", "adquirir habito",
       "adquirir o produto", "adquirir produtos", "adquirir bens de consumo",
       "onde adquirir", "como adquirir", "adquirir o jogo",
       "adquirir um produto", "adquirir um aparelho", "adquirir um smartwatch",
       "adquirir um celular", "adquirir um carro", "adquirir um veiculo",
       "adquirir um imovel", "adquirir um plano", "adquirir ingresso",
-      // consumo/varejo/listicle (resenha, promocao, "como comprar")
-      "em promocao", "como comprar", "vale a pena comprar", "melhores estudios",
-      "melhores jogos", "renovar o setup", "selecao de notebooks",
       "adquirir um notebook", "adquirir um computador", "adquirir um novo computador",
       "adquirir um laptop", "adquirir o game", "adquirir games", "adquirir um game",
       "necessidade de adquirir", "adquirir outro",
+      "adquirir vacinas", "adquirir medicamentos", "adquirir doses", "adquirir imunizantes",
+      "adquirir equipamentos", "adquirir alimentos", "adquirir insumos", "adquirir materiais",
+      "adquirir merenda", "adquirir combustivel", "adquirir sacos", "adquirir cadaveres",
+      "adquire vacinas", "adquire medicamentos", "adquire equipamentos", "adquire sacos",
+      "adquire alimentos", "adquire imoveis", "adquire um", "adquire uma",
+      "adquire navios", "adquirir navios", "adquirir a maquina", "adquire a maquina",
+      "adquirir a tecnologia", "adquirir tecnologia", "adquirira",
+      "governo adquire", "prefeitura adquire", "onu adquire", "ministerio adquire",
+      // consumo/varejo/listicle
+      "em promocao", "como comprar", "vale a pena comprar", "melhores estudios",
+      "melhores jogos", "renovar o setup", "selecao de notebooks",
       // conhecimento/competencia ("o conhecimento so se adquire...")
       "se adquire",
-      // crime/consumo (receptacao, furto) e retrospectiva de carreira ("diz adeus")
+      // crime/consumo (receptacao) e retrospectiva de carreira ("diz adeus")
       "receptacao", "diz adeus",
-      // direito adquirido (juridico, nao M&A) - ex.: penduricalhos adquiridos
+      // direito adquirido (juridico) e particípios de sentido nao-M&A
       "direitos adquiridos", "direito adquirido", "adquiridos antes", "adquirido antes",
-      // aquisicao de usuarios/engajamento (marketing de app) e compras/procurement
-      "aquisicao e engajamento", "aquisicao e o engajamento", "aquisicao e retencao",
-      "aquisicoes emergenciais", "aquisicao emergencial",
-      "aquisicao de materiais", "aquisicao de material", "aquisicao de insumos",
+      "conhecimento adquirido", "experiencia adquirida", "habito adquirido",
+      "imunidade adquirida", "gosto adquirido",
+      // "takeover" fora de M&A (motim, ciberseguranca, fisico)
+      "account takeover", "jail takeover", "prison takeover", "server takeover",
+      "takeover at a",
     ],
   },
 

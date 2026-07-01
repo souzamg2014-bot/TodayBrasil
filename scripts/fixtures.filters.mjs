@@ -72,6 +72,16 @@ export const THEME_CASES = [
   { text: "Jovem compra celular adquirido por R$ 1.800 e é autuado por receptação", themes: [] },
   // exclusao M&A: retrospectiva de carreira, nao um negócio em curso
   { text: "Após US$ 90 bilhões em aquisições, Bob Iger diz adeus à Disney", themes: [] },
+  // M&A reais (precisao > recall): variacoes que precisam continuar casando
+  { text: "Sabesp anuncia incorporação total da EMAE", themes: ["ma"] },
+  { text: "Nubank avança em disputa para comprar unidade de banco português no Brasil", themes: ["ma"] },
+  { text: "Grupo Zanchetta anuncia aquisição da Ceratti, marca de frios", themes: ["ma"] },
+  { text: "Rocket Lab adquire Iridium por US$ 8 bilhões", themes: ["ma"] },
+  { text: "Time For Fun lança edital de OPA para fechar o capital", themes: ["ma"] },
+  // exclusao M&A: procurement/compra publica de bens (nao e deal societario)
+  { text: "ONU adquire 10 mil sacos para cadáveres após terremotos na Venezuela", themes: [] },
+  { text: "Governo vai adquirir vacinas contra a nova variante", themes: ["politica"] },
+  { text: "Reino Unido adquirirá navios híbridos para a Marinha Real", themes: [] },
   // Empreendedorismo
   { text: "Fundador conta como abriu a empresa do zero", themes: ["empreendedorismo"] },
   // Politica & Regulacao
