@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { getContext } from "@/lib/api-auth";
 
-// Resumos Inteligentes: leitura so para o plano Premium (id de storage 'caderno', ativo).
+// Resumos Inteligentes: leitura para qualquer plano pago (Pro, ativo).
 //   GET /api/resumos            -> lista (mais recentes primeiro)
 //   GET /api/resumos?tema=ma    -> filtra por tema
 //   GET /api/resumos?janela=tarde -> filtra por janela
 export async function GET(request: Request) {
   const ctx = await getContext(request);
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const premium = ctx.plan === "caderno" && ctx.paid;
-  if (!premium) return NextResponse.json({ error: "premium" }, { status: 403 });
+  if (!ctx.paid) return NextResponse.json({ error: "paid" }, { status: 403 });
 
   const sp = new URL(request.url).searchParams;
   const tema = sp.get("tema");

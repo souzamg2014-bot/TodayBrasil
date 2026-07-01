@@ -3,13 +3,16 @@
 //
 // Roda DEPOIS da ingestao (mesmo workflow do GitHub Actions). Pega as noticias
 // recem-coletadas, cruza com as REGRAS dos usuarios PAGOS (alert_rules) e grava
-// NOTIFICACOES (dedupe por usuario+noticia). A central in-app e o Web Push leem
-// dessas notificacoes.
+// NOTIFICACOES. A central in-app e o Web Push leem dessas notificacoes.
 //
 // Tipos de regra (v1): keyword (texto), sector (1 dos 18), lente (1 das 9).
 //   - keyword: casa por substring normalizada (sem acento, minusculo) em titulo+resumo
 //   - sector : article.sector === value
 //   - lente  : article.themes contem value
+//
+// Conteudo da notificacao (por rodada, por regra):
+//   - keyword     : 1 notificacao com a noticia mais recente que casou + convite ao site
+//   - sector/lente: 1 notificacao AGREGADA ("N novas noticias em X"), sem listar tudo
 //
 // Rodar:  node scripts/match-alerts.mjs
 //   ALERT_LOOKBACK_MIN=30   janela de noticias por created_at (default 30 min)
@@ -112,42 +115,66 @@ async function main() {
   if (aErr) { console.error("erro lendo news_articles:", aErr.message); process.exit(1); }
   if (!arts?.length) { console.log(`Sem noticias novas (ultimos ${LOOKBACK_MIN} min).`); return; }
 
-  // 3) casa regras x noticias. 1 notificacao por usuario+noticia (a 1a regra que casar).
+  // 3) gera as notificacoes conforme o tipo da regra. arts vem ordenado por
+  //    created_at desc, entao matches[0] e a noticia mais recente que casou.
   const rows = [];
-  const wantsPush = new Map(); // `${user_id}|${article_id}` -> bool (regra pede push?)
-  const seen = new Set();
-  for (const art of arts) {
-    for (const rule of liveRules) {
-      const key = `${rule.user_id}|${art.id}`;
-      if (seen.has(key)) continue;
-      if (!ruleMatchesArticle(rule, art)) continue;
-      seen.add(key);
-      wantsPush.set(key, Array.isArray(rule.channels) && rule.channels.includes("push"));
+  const wantsPush = new Map(); // rule_id -> regra pede push? (1 linha por regra por rodada)
+  const seenArticle = new Set(); // evita 2 linhas com o mesmo (user, article) no batch
+
+  for (const rule of liveRules) {
+    const matches = arts.filter((a) => ruleMatchesArticle(rule, a));
+    if (matches.length === 0) continue;
+    const label = rule.label || rule.value;
+    wantsPush.set(rule.id, Array.isArray(rule.channels) && rule.channels.includes("push"));
+
+    if (rule.kind === "keyword") {
+      // 1 notificacao com a noticia mais recente + convite ao site.
+      const art = matches[0];
+      const akey = `${rule.user_id}|${art.id}`;
+      if (seenArticle.has(akey)) continue; // outra regra ja usou essa noticia neste batch
+      seenArticle.add(akey);
       rows.push({
         user_id: rule.user_id,
         rule_id: rule.id,
-        article_id: art.id,
+        article_id: art.id, // dedupe cross-rodada por unique(user_id, article_id)
         kind: rule.kind,
         value: rule.value,
-        title: art.title,
-        body: (art.summary ?? "").slice(0, 280),
-        url: art.url,
+        title: `Nova notícia sobre "${label}"`,
+        body: `${art.title}\n\nEntre no TodayBrasil para conferir.`,
+        url: `/?q=${encodeURIComponent(rule.value)}`,
+      });
+    } else {
+      // sector | lente: notificacao AGREGADA (nao lista todas). article_id null
+      // permite varias agregadas (uma por regra por rodada).
+      const n = matches.length;
+      rows.push({
+        user_id: rule.user_id,
+        rule_id: rule.id,
+        article_id: null,
+        kind: rule.kind,
+        value: rule.value,
+        title: `${n} ${n === 1 ? "nova notícia" : "novas notícias"} em ${label}`,
+        body: "Confira as novidades no TodayBrasil.",
+        url: rule.kind === "sector"
+          ? `/?sector=${encodeURIComponent(rule.value)}`
+          : `/?theme=${encodeURIComponent(rule.value)}`,
       });
     }
   }
 
   if (rows.length === 0) { console.log("Nenhuma noticia recente casou com as regras."); return; }
 
-  // 4) grava (dedupe por unique(user_id, article_id); .select() devolve so as NOVAS)
+  // 4) grava. keyword deduplica por unique(user_id, article_id); as agregadas
+  //    (article_id null) sempre entram. .select() devolve so as NOVAS.
   const { data: inserted, error: iErr } = await supabase
     .from("notifications")
     .upsert(rows, { onConflict: "user_id,article_id", ignoreDuplicates: true })
-    .select("id, user_id, article_id, title, body, url");
+    .select("id, user_id, rule_id, article_id, title, body, url");
   if (iErr) { console.error("erro inserindo notifications:", iErr.message); process.exit(1); }
 
   const novas = inserted ?? [];
   console.log(`Regras ativas (pagas): ${liveRules.length} | noticias na janela: ${arts.length}`);
-  console.log(`Notificacoes candidatas: ${rows.length} | novas gravadas: ${novas.length} (repetidas ignoradas).`);
+  console.log(`Notificacoes candidatas: ${rows.length} | novas gravadas: ${novas.length}.`);
 
   // 5) Web Push (opcional): so para as NOVAS cujas regras pedem 'push'.
   await dispatchPush(novas, wantsPush);
@@ -156,7 +183,7 @@ async function main() {
 // Envia Web Push para as notificacoes novas marcadas com canal 'push'.
 // No-op se a lib/chaves nao estiverem configuradas (a central in-app ja resolveu).
 async function dispatchPush(novas, wantsPush) {
-  const alvo = novas.filter((n) => wantsPush.get(`${n.user_id}|${n.article_id}`));
+  const alvo = novas.filter((n) => wantsPush.get(n.rule_id));
   if (alvo.length === 0) return;
   const on = await initPush();
   if (!on) { console.log(`Push: desativado (lib/chaves ausentes). ${alvo.length} alerta(s) ficam so na central.`); return; }

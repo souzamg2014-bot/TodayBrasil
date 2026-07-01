@@ -42,7 +42,7 @@ export default function Resumos() {
       <div className="cadwrap caddenied">
         <a href="/"><span className="cadminilogo">Today<em>Brasil</em></span></a>
         <h1 className="cadlogo">Resumos <em>Inteligentes</em></h1>
-        <p>Conteúdo do plano <strong>Premium</strong> (R$ 29,90/mês): o que aconteceu em cada setor, resumido a partir de dezenas de fontes.</p>
+        <p>Conteúdo do plano <strong>Pro</strong> (R$ 9,90/mês): o que aconteceu em cada setor, resumido a partir de dezenas de fontes.</p>
         <a className="abtn" href="/">← Voltar ao feed</a>
       </div>
     );

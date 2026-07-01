@@ -102,10 +102,15 @@ export default function Alertas() {
     setBusy(true);
     const t = await token();
     const channels = ["in_app", ...(pushChannel ? ["push"] : [])];
+    // rotulo legivel (usado no texto do push/alerta): setor/tema -> nome; keyword -> texto digitado
+    const label =
+      kind === "sector" ? SECTOR_LABEL.get(v) ?? v
+      : kind === "lente" ? THEME_LABEL.get(v) ?? v
+      : v;
     const res = await fetch("/api/alerts", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
-      body: JSON.stringify({ kind, value: v, channels }),
+      body: JSON.stringify({ kind, value: v, label, channels }),
     });
     setBusy(false);
     if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error ?? "erro ao salvar"); return; }

@@ -1,33 +1,32 @@
 // Planos e regras do paywall (fonte unica). Usado no front e na API.
+// Um unico plano pago: Pro (R$ 9,90), que libera TUDO (feed completo, busca,
+// temas, alertas e Resumos Inteligentes). 'caderno' fica so como valor legado no
+// banco (assinantes antigos) e conta como pago; nao e mais oferecido.
 
 export type Plan = "free" | "pro" | "caderno";
 
-// id de storage 'caderno' mantido no banco; rotulo de exibicao = "Premium"
 export const PLANS = {
   free: { label: "Grátis", price: 0 },
   pro: {
     label: "Pro",
     price: 9.9,
-    tagline: "Tudo do TodayBrasil, sem limites.",
+    tagline: "Tudo do TodayBrasil por R$ 9,90/mês.",
     perks: [
       "Feed completo (sem limite de 20)",
       "Busca em tudo",
       "Temas (M&A, Política, Investimentos...)",
+      "Central de Alertas (no site e por push)",
+      "Resumos Inteligentes (manhã e tarde)",
       "Fontes primárias: CVM, falências, CAGED, IBAMA",
       "Notícias do Mundo (EN/ES)",
     ],
   },
+  // legado: assinantes antigos com plano 'caderno' seguem valendo como pagos.
   caderno: {
-    label: "Premium",
-    price: 29.9,
-    tagline: "O Pro + Resumos Inteligentes.",
-    perks: [
-      "Tudo do Pro",
-      "Resumos Inteligentes: o que aconteceu em cada tema",
-      "Por janela do dia (manhã, tarde, noite)",
-      "Dezenas de fontes cruzadas em um único resumo",
-      "M&A, Startups, Inovação & IA, Indústria e Política",
-    ],
+    label: "Pro",
+    price: 9.9,
+    tagline: "Tudo do TodayBrasil por R$ 9,90/mês.",
+    perks: [],
   },
 } as const;
 
@@ -41,9 +40,9 @@ export function isPaid(plan?: Plan | null, expiresAt?: string | null): boolean {
   return new Date(expiresAt).getTime() > Date.now();
 }
 
-// Resumos Inteligentes - so no plano Premium (id de storage 'caderno')
+// Resumos Inteligentes - liberado para qualquer plano pago (Pro).
 export function hasResumos(plan?: Plan | null, expiresAt?: string | null): boolean {
-  return plan === "caderno" && isPaid(plan, expiresAt);
+  return isPaid(plan, expiresAt);
 }
 
 // o que o plano libera

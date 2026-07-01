@@ -8,8 +8,9 @@ export default function PlansModal({
   onChoose,
 }: {
   onClose: () => void;
-  onChoose: (plan: "pro" | "caderno") => void;
+  onChoose: (plan: "pro") => void;
 }) {
+  const p = PLANS.pro;
   return (
     <div className="modalback" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -18,25 +19,20 @@ export default function PlansModal({
         <p className="modalsub">Sem fidelidade · cancele quando quiser · reembolso em 7 dias.</p>
 
         <div className="plans">
-          {(["pro", "caderno"] as const).map((id) => {
-            const p = PLANS[id];
-            return (
-              <div key={id} className={`plancard ${id === "caderno" ? "hot" : ""}`}>
-                {id === "caderno" && <span className="planflag">Completo</span>}
-                <h3>{p.label}</h3>
-                <div className="price">
-                  <span>R$</span>{p.price.toFixed(2).replace(".", ",")}<small>/mês</small>
-                </div>
-                <p className="plantagline">{"tagline" in p ? p.tagline : ""}</p>
-                <ul>
-                  {"perks" in p && p.perks.map((x) => <li key={x}>{x}</li>)}
-                </ul>
-                <button className="planbtn" onClick={() => onChoose(id)}>
-                  Assinar {p.label}
-                </button>
-              </div>
-            );
-          })}
+          <div className="plancard hot">
+            <span className="planflag">Completo</span>
+            <h3>{p.label}</h3>
+            <div className="price">
+              <span>R$</span>{p.price.toFixed(2).replace(".", ",")}<small>/mês</small>
+            </div>
+            <p className="plantagline">{p.tagline}</p>
+            <ul>
+              {p.perks.map((x) => <li key={x}>{x}</li>)}
+            </ul>
+            <button className="planbtn" onClick={() => onChoose("pro")}>
+              Assinar {p.label}
+            </button>
+          </div>
         </div>
 
         <p className="modalfine">

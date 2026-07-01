@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import Entrance from "@/components/Entrance";
 import PlansModal from "@/components/PlansModal";
 import ThemeToggle from "@/components/ThemeToggle";
-import { isPaid, hasResumos, FREE_LIMIT, type Plan } from "@/lib/plans";
+import { isPaid, FREE_LIMIT, type Plan } from "@/lib/plans";
 
 type Item = {
   id: string;
@@ -54,10 +54,9 @@ export default function Home() {
   const [showPlans, setShowPlans] = useState(false);
   const [pdfItem, setPdfItem] = useState<Item | null>(null); // leitor de PDF da CVM
   const paid = isPaid(plan, planExp);
-  const premium = hasResumos(plan, planExp);
 
   const openResumos = () => {
-    if (premium) window.location.href = "/resumos";
+    if (paid) window.location.href = "/resumos";
     else setShowPlans(true);
   };
 
@@ -80,6 +79,18 @@ export default function Home() {
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
+  // deep-link: /?sector=, /?theme= ou /?q= (usado pelos alertas) prefiltra o feed
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const qp = sp.get("q");
+    const sec = sp.get("sector");
+    const th = sp.get("theme");
+    if (qp) setQ(qp);
+    if (sec) setSelected(sec.split(",").map((s) => s.trim()).filter(Boolean));
+    if (th) setTheme(th);
+  }, []);
+
   // carrega o plano do perfil ao logar
   useEffect(() => {
     if (!session) { setPlan("free"); setPlanExp(null); setIsAdmin(false); return; }
@@ -100,7 +111,7 @@ export default function Home() {
       .then(({ data }) => setIsAdmin(!!data?.is_admin), () => setIsAdmin(false));
   }, [session]);
 
-  async function goCheckout(planId: "pro" | "caderno") {
+  async function goCheckout(planId: "pro") {
     setShowPlans(false);
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
@@ -182,14 +193,14 @@ export default function Home() {
     if (session) load(0, true);
   }, [load, session]);
 
-  // termometro (so logado; recarrega quando o usuario faz uma busca nova)
+  // termometro (so logado; recarrega quando muda busca ou escopo Brasil/Mundo)
   useEffect(() => {
     if (!session) return;
-    fetch("/api/stats", { headers: { Authorization: `Bearer ${session.access_token}` } })
+    fetch(`/api/stats?scope=${scope}`, { headers: { Authorization: `Bearer ${session.access_token}` } })
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});
-  }, [debouncedQ, session]);
+  }, [debouncedQ, session, scope]);
 
   const toggleSector = (id: string) =>
     setSelected((prev) =>
@@ -222,11 +233,11 @@ export default function Home() {
           <div className="acct">
             <span className="acctmail">{session.user.email}</span>
             <span className={`plantag ${paid ? "on" : ""}`}>
-              {paid ? (plan === "caderno" ? "Premium" : "Pro") : "Grátis"}
+              {paid ? "Pro" : "Grátis"}
             </span>
             {isAdmin && <a className="adminlink" href="/admin">Admin</a>}
             <ThemeToggle />
-            {!premium && (
+            {!paid && (
               <button className="assinar" onClick={() => setShowPlans(true)}>
                 Assinar
               </button>
