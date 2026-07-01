@@ -39,32 +39,34 @@
 
 .entrance { position: fixed; inset: 0; background: #000; color: #fff; overflow: hidden; }
 
-.door { position: absolute; inset: 0; }
-.door-panel {
-  position: absolute; top: 0; bottom: 0; width: 50%;
-  background: radial-gradient(120% 100% at 50% 0%, #14161a 0%, #000 70%);
-  z-index: 1;
-  transition: transform 0.7s cubic-bezier(0.7, 0, 0.25, 1) 0.18s;
-}
-.door-panel.left { left: 0; box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06); }
-.door-panel.right { right: 0; box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06); }
-.door.opening .door-panel.left { transform: translateX(-100%); }
-.door.opening .door-panel.right { transform: translateX(100%); }
-
-.seam {
-  position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; z-index: 2;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.55) 35%, rgba(255, 255, 255, 0.55) 65%, transparent);
-  transition: opacity 0.4s;
-}
-.door.opening .seam { opacity: 0; }
-
-.door-content {
-  position: absolute; inset: 0; z-index: 3;
+/* ===== Lanterna: tela escura; o mouse ilumina; o clique acende tudo ===== */
+.lantern-scene { position: absolute; inset: 0; cursor: crosshair; z-index: 1; outline: none; }
+.lantern-content {
+  position: absolute; inset: 0; z-index: 2;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 24px;
-  transition: opacity 0.35s ease;
 }
-.door.opening .door-content { opacity: 0; }
+/* camada de escuridao com um "furo" de luz seguindo o cursor (--mx/--my) */
+.lantern {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: radial-gradient(circle 200px at var(--mx, 50%) var(--my, 42%),
+    rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.92) 74%);
+  transition: opacity 0.9s ease;
+}
+/* clique acende tudo: a escuridao some e a tela inteira fica iluminada */
+.lantern-scene.lit { cursor: default; }
+.lantern-scene.lit .lantern { opacity: 0; }
+
+.lantern-hint {
+  margin-top: 26px; font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6); animation: hintPulse 2.4s ease-in-out infinite;
+}
+.lantern-scene.lit .lantern-hint { opacity: 0; }
+@keyframes hintPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.75; } }
+@media (prefers-reduced-motion: reduce) {
+  .lantern { background: radial-gradient(circle 340px at var(--mx, 50%) var(--my, 42%), rgba(0,0,0,0) 0%, rgba(0,0,0,0.72) 82%); transition: opacity 0.3s; }
+  .lantern-hint { animation: none; }
+}
 
 .masthead {
   font-family: var(--serif);

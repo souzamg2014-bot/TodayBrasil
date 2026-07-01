@@ -56,12 +56,21 @@ export default function Entrance({
   const [err, setErr] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false); // aceite dos termos (so no cadastro)
 
-  const openDoor = () => {
-    setView("opening");
+  // clique acende tudo: ilumina a tela inteira e depois entra/vai pro login
+  const lightUp = () => {
+    if (view !== "door") return;
+    setView("opening"); // "opening" = tela toda acesa
     setTimeout(() => {
       if (loggedIn) onEnter?.();   // logado: entra direto
       else setView("login");
-    }, 900); // dura o mesmo da animacao CSS
+    }, 900); // dura o mesmo da transicao CSS de acender
+  };
+
+  // lanterna: o cursor vira o centro da luz (CSS vars lidas pelo gradiente)
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    el.style.setProperty("--mx", `${e.clientX}px`);
+    el.style.setProperty("--my", `${e.clientY}px`);
   };
 
   async function submit(e: React.FormEvent) {
@@ -99,21 +108,25 @@ export default function Entrance({
 
   return (
     <div className="entrance">
-      {/* PORTA (sempre montada p/ animar; some quando vira login) */}
+      {/* LANTERNA: tudo escuro, o mouse ilumina; o clique acende tudo e entra */}
       {view !== "login" && (
-        <div className={`door ${view === "opening" ? "opening" : ""}`}>
-          <div className="door-panel left" />
-          <div className="door-panel right" />
-          <div className="seam" />
-          <div className="door-content">
+        <div
+          className={`lantern-scene ${view === "opening" ? "lit" : ""}`}
+          onMouseMove={onMove}
+          onClick={lightUp}
+          role="button"
+          tabIndex={0}
+          aria-label="Entrar"
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") lightUp(); }}
+        >
+          <div className="lantern-content">
             <h1 className="masthead">
               Today<em>Brasil</em>
             </h1>
             <RotatingSlogan />
-            <button className="enterbtn" onClick={openDoor} aria-label="Entrar">
-              <span className="doorico" aria-hidden>⇥</span> ENTRAR
-            </button>
+            <span className="lantern-hint">clique para acender</span>
           </div>
+          <div className="lantern" aria-hidden />
         </div>
       )}
 
