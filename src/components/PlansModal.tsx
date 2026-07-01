@@ -29,8 +29,9 @@ export default function PlansModal({
               {p.perks.map((x) => <li key={x}>{x}</li>)}
             </ul>
             <button className="planbtn" onClick={() => onChoose("pro")}>
-              Assinar {p.label}
+              Quero o Pro por R$ {p.price.toFixed(2).replace(".", ",")}/mês
             </button>
+            <p className="planreassure">Ativação na hora · cancele quando quiser</p>
           </div>
         </div>
 

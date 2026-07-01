@@ -254,6 +254,7 @@
 .planbtn { width: 100%; background: var(--gold); color: var(--on-accent); border: none; border-radius: 10px; padding: 13px; font-weight: 800; font-size: 14px; cursor: pointer; }
 .plancard:not(.hot) .planbtn { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
 .planbtn:hover { filter: brightness(1.05); }
+.planreassure { text-align: center; color: var(--muted); font-size: 12px; margin: 10px 0 0; }
 .modalfine { text-align: center; color: var(--muted); font-size: 12px; margin: 22px 0 0; }
 @media (max-width: 560px) { .plans { grid-template-columns: 1fr; } }
 
