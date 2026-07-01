@@ -131,17 +131,23 @@ export const THEME_RULES = {
     ],
   },
 
-  // Empreendedorismo
+  // Empreendedorismo. "empreend" (prefixo) pegava "empreendimento" imobiliario;
+  // trocado pelos termos de EMPREENDEDOR (pessoa/atividade), nao de obra.
   empreendedorismo: {
     any: [
-      "empreend", "fundador", "fundadora", "cofundador", "co-fundador",
+      "empreendedor", "empreendedora", "empreendedores", "empreendedorismo", "empreender",
+      "fundador", "fundadora", "cofundador", "co-fundador",
       "startup", "abriu a empresa", "abriu o negocio", "abriu sua empresa",
       "montou a empresa", "montou o negocio", "criou a empresa",
       "negocio proprio", "mei ", "microempreend", "investimento anjo",
       "aceleradora", "incubadora", "unicornio", "scale-up", "bootstrap",
       "comecou do zero", "construiu do zero",
     ],
-    not: [],
+    // fundador de gigante citado em bio/frase (nao e materia de empreendedorismo)
+    not: [
+      "fundador da microsoft", "fundador da apple", "fundador da amazon",
+      "fundador do facebook", "fundador da tesla", "fundador da meta",
+    ],
   },
 
   // Politica & Regulacao
@@ -171,15 +177,20 @@ export const THEME_RULES = {
     not: ["perda de patente", "posto e patente", "patente militar", "na patente de"],
   },
 
-  // Investimentos & Mercado
+  // Investimentos & Mercado. Removidos os prefixos soltos que vazavam:
+  //   "b3 " (vaga/leilao "na B3"), "serie a/b/c" (futebol Serie B!),
+  //   "aporte"/"captac"/"captou" (credito agro, captacao de agua) -> agora exigem valor.
   investimentos: {
     any: [
-      "ipo ", "abertura de capital", "captou", "captac", "aporte",
+      "ipo ", "abertura de capital", "oferta publica de acoes", "oferta subsequente",
+      "captou r$", "captou us$", "captacao de recursos",
+      "aporte de r$", "aporte de us$", "aporte de capital", "aporte financeiro", "novo aporte",
+      "recebe aporte", "recebeu aporte", "aporte de fundo", "aporte de investidor", "aporte da gestora",
       "rodada de investiment", "rodada de financiamento", "rodada de captac",
-      "rodada serie", "rodada seed", "serie a", "serie b", "serie c",
+      "rodada serie", "rodada seed", "seed round", "series a round", "series b round",
       "valuation", "fundo de investimento", "venture capital",
-      "private equity", "levantou r$", "investimento de r$", "b3 ",
-      "ibovespa", "dividendos", "follow-on", "oferta de acoes",
+      "private equity", "levantou r$", "levantou us$", "investimento de r$", "investimento de us$",
+      "ibovespa", "pregao", "bolsa de valores", "dividendos", "follow-on", "oferta de acoes",
       "acoes da", "acoes ordinarias", "acoes preferenciais", "cotacao das acoes",
     ],
     // "acoes" tambem = medidas/iniciativas (nao bolsa)
@@ -188,6 +199,7 @@ export const THEME_RULES = {
       "acoes integradas", "acoes judiciais", "acoes coletivas", "acoes educativas",
       "acoes de prevencao", "acoes humanitarias", "acoes de marketing",
       "acoes da campanha", "acoes da policia", "acoes da prefeitura",
+      "acoes da justica", "acoes da educacao", "acoes da saude", "acoes do governo",
     ],
   },
 };

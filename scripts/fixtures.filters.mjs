@@ -96,4 +96,16 @@ export const THEME_CASES = [
   { text: "Startup de inteligência artificial recebe aporte de fundo", themes: ["empreendedorismo", "inovacao", "investimentos"] },
   // exclusao investimentos: 'ações' = iniciativas, nao bolsa
   { text: "Prefeitura anuncia ações de combate à dengue", themes: [] },
+  // exclusao empreendedorismo: 'empreendimento' imobiliario/obra, nao empreendedor
+  { text: "Cataguá Resort Esmeralda, empreendimento imobiliário, é lançado em MG", themes: [] },
+  { text: "Galpões logísticos ganham espaço nos FIIs e a PZ Empreendimentos desenvolve novos projetos", themes: [] },
+  { text: "Bill Gates, fundador da Microsoft, dá conselho de produtividade", themes: [] },
+  // empreendedorismo real (blindar)
+  { text: "Empreendedora abre negócio próprio e vira referência no setor", themes: ["empreendedorismo"] },
+  // exclusao investimentos: 'B3' como empresa/local (vaga, leilao) e 'Serie B' futebol
+  { text: "Analista de Engenharia de Software Júnior - Java - Vagas B3", themes: [] },
+  { text: "Sky e HBO Max renomeiam estádio de time da Série B do Brasileirão", themes: [] },
+  { text: "Leilão de saneamento na B3: consórcio arremata bloco de esgoto", themes: [] },
+  // investimentos real (blindar)
+  { text: "Fintech levantou R$ 100 milhões em nova rodada de investimento", themes: ["investimentos"] },
 ];
