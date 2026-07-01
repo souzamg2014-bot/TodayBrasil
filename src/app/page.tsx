@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react
 import type { Session } from "@supabase/supabase-js";
 import { getSector } from "@/lib/sectors";
 import { THEMES, getTheme } from "@/lib/themes";
+import { COUNTRIES } from "@/lib/countries";
 import { timeAgo } from "@/lib/time";
 import { supabase } from "@/lib/supabase";
 import Entrance from "@/components/Entrance";
@@ -26,6 +27,7 @@ type Stats = {
   sectors: { sector: string; n: number }[];
   topSearches: { q: string; hits: number }[];
   trending: { term: string; ndoc: number }[];
+  countries?: { country: string; n: number }[];
 };
 
 export default function Home() {
@@ -33,8 +35,10 @@ export default function Home() {
   const [selected, setSelected] = useState<string[]>([]);
   // lente ativa (uma de cada vez; null = nenhuma)
   const [theme, setTheme] = useState<string | null>(null);
-  // escopo: 'br' (pt) ou 'mundo' (en+es)
+  // escopo: 'br' (pt) ou 'mundo' (todos != pt)
   const [scope, setScope] = useState<"br" | "mundo">("br");
+  // pais selecionado no Mundo (null = todos)
+  const [country, setCountry] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [items, setItems] = useState<Item[]>([]);
@@ -86,9 +90,11 @@ export default function Home() {
     const qp = sp.get("q");
     const sec = sp.get("sector");
     const th = sp.get("theme");
+    const co = sp.get("country");
     if (qp) setQ(qp);
     if (sec) setSelected(sec.split(",").map((s) => s.trim()).filter(Boolean));
     if (th) setTheme(th);
+    if (co) { setScope("mundo"); setCountry(co); }
   }, []);
 
   // carrega o plano do perfil ao logar
@@ -166,7 +172,8 @@ export default function Home() {
       const id = ++reqId.current;
       setLoading(true);
       const params = new URLSearchParams({ sector: sectorParam, page: String(nextPage) });
-      params.set("lang", scope === "mundo" ? "en,es" : "pt");
+      params.set("scope", scope);
+      if (scope === "mundo" && country) params.set("country", country);
       if (debouncedQ && paid) params.set("q", debouncedQ); // busca: so Pro
       if (scope === "br" && theme) params.set("theme", theme);
       try {
@@ -185,7 +192,7 @@ export default function Home() {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sectorParam, debouncedQ, theme, scope, paid, session],
+    [sectorParam, debouncedQ, theme, scope, country, paid, session],
   );
 
   // recarrega do zero quando muda setor/busca (so logado)
@@ -212,12 +219,13 @@ export default function Home() {
   // lente: clicar ativa; clicar de novo desliga
   const toggleTheme = (id: string) => setTheme((cur) => (cur === id ? null : id));
 
-  // troca Brasil/Mundo: limpa lente e busca (lentes sao PT, nao se aplicam ao Mundo)
+  // troca Brasil/Mundo: limpa lente, pais e setores (contextos diferentes)
   const switchScope = (s: "br" | "mundo") => {
     if (s === scope) return;
     setScope(s);
     setTheme(null);
     setSelected([]);
+    setCountry(null);
   };
 
   // gate: tela preta enquanto verifica; porta misteriosa se deslogado
@@ -225,6 +233,9 @@ export default function Home() {
   if (!session) return <Entrance />;
   // home (porta) com usuario logado: ENTRAR entra direto no feed
   if (atHome) return <Entrance loggedIn onEnter={() => setAtHome(false)} />;
+
+  const countryN = new Map((stats?.countries ?? []).map((c) => [c.country, c.n]));
+  const toggleCountry = (id: string) => setCountry((cur) => (cur === id ? null : id));
 
   return (
     <>
@@ -406,6 +417,33 @@ export default function Home() {
         </main>
 
         <aside className="side">
+          {scope === "mundo" && (
+            <section className="panel">
+              <h4>Países</h4>
+              <p className="hint">clique pra filtrar o Mundo</p>
+              <ul className="rank">
+                <li>
+                  <button className={`rankrow ${!country ? "on" : ""}`} onClick={() => setCountry(null)}>
+                    <span className="rl">🌐 Todos os países</span>
+                  </button>
+                </li>
+                {COUNTRIES.map((c) => {
+                  const n = countryN.get(c.id) ?? 0;
+                  return (
+                    <li key={c.id}>
+                      <button
+                        className={`rankrow ${country === c.id ? "on" : ""}`}
+                        onClick={() => toggleCountry(c.id)}
+                      >
+                        <span className="rl">{c.flag} {c.label}</span>
+                        {n > 0 && <span className="rn">{n}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
           <section className="panel">
             <h4>Setores em alta</h4>
             <p className="hint">últimos 7 dias · clique pra filtrar</p>

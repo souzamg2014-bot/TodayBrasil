@@ -227,8 +227,10 @@ function parseEntries(xml, host, feed = {}) {
       if (sector === "geral") sector = feed.sector || "geral";
       themes = classifyThemes(`${title} ${desc}`);
     }
+    const lang = feed.lang || LANG;
     return {
-      lang: feed.lang || LANG,
+      lang,
+      country: feed.country || (lang === "pt" ? "BR" : null),
       sector,
       themes,
       title,
@@ -294,7 +296,19 @@ async function purgeOld() {
   }
 }
 
+// a coluna news_articles.country pode ainda nao existir (antes de rodar
+// supabase/16_country.sql). Se faltar, ingerimos sem country em vez de quebrar.
+let HAS_COUNTRY = true;
+async function probeCountry() {
+  const { error } = await supabase.from("news_articles").select("country").limit(1);
+  if (error) {
+    HAS_COUNTRY = false;
+    console.log("coluna 'country' ausente: ingerindo sem country (rode supabase/16_country.sql).");
+  }
+}
+
 async function main() {
+  await probeCountry();
   const feeds = FEEDS;
   let total = 0;
   let ok = 0;
@@ -312,12 +326,13 @@ async function main() {
         try {
           const { txt, source, via } = await getFeed(feed);
           if (via === "google") viaGoogle++;
-          const articles = parseEntries(txt, source, feed).filter((a) => a.title && a.url && !isJunk(a.title, a.url));
+          let articles = parseEntries(txt, source, feed).filter((a) => a.title && a.url && !isJunk(a.title, a.url));
           if (articles.length === 0) {
             console.log(`  ${feed.url}: 0 itens`);
             failed.push(feed.url);
             return;
           }
+          if (!HAS_COUNTRY) articles = articles.map(({ country, ...rest }) => rest);
           const { error } = await supabase
             .from("news_articles")
             .upsert(articles, { onConflict: "url", ignoreDuplicates: true });

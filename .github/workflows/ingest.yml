@@ -21,6 +21,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FEED_SET: all # Brasil (pt) + Mundo (intl, por pais)
       # Auditoria de conteudo (rede de seguranca): apaga qualquer lixo
       # (publieditorial/promo) que tenha escapado, ANTES de virar feed/alerta.
       # A ingestao ja barra na entrada; aqui limpa o que entrou nos ultimos 120 min.

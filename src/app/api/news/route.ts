@@ -15,7 +15,9 @@ export async function GET(request: Request) {
   const themes = ctx.paid
     ? (sp.get("theme") ?? "").split(",").map((s) => s.trim()).filter(Boolean)
     : [];
-  const langs = (sp.get("lang") ?? "pt").split(",").map((s) => s.trim()).filter(Boolean);
+  // escopo: 'mundo' = tudo != pt (com filtro opcional de pais); 'br' (default) = pt
+  const scope = sp.get("scope") === "mundo" ? "mundo" : "br";
+  const country = (sp.get("country") ?? "").trim();
 
   // ---- PAYWALL no servidor (nao confia no front) ----
   const q = ctx.paid ? (sp.get("q") ?? "").trim() : "";          // busca: so Pro
@@ -24,12 +26,16 @@ export async function GET(request: Request) {
 
   let query = ctx.admin
     .from("news_articles")
-    .select("id, title, summary, source, url, sector, themes, published_at")
+    .select("id, title, summary, source, url, sector, themes, country, published_at")
     .order("published_at", { ascending: false, nullsFirst: false })
     .range(page * limit, page * limit + limit - 1);
 
-  if (langs.length === 1) query = query.eq("lang", langs[0]);
-  else if (langs.length > 1) query = query.in("lang", langs);
+  if (scope === "mundo") {
+    query = query.neq("lang", "pt");
+    if (country) query = query.eq("country", country);
+  } else {
+    query = query.eq("lang", "pt");
+  }
   if (sectors.length === 1) query = query.eq("sector", sectors[0]);
   else if (sectors.length > 1) query = query.in("sector", sectors);
   if (themes.length) query = query.overlaps("themes", themes);
