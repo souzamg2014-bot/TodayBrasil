@@ -22,6 +22,7 @@ type Item = {
   url: string | null;
   sector: string;
   themes: string[] | null;
+  lang: string | null;
   published_at: string | null;
 };
 
@@ -50,6 +51,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
   const reqId = useRef(0);
+  // titulos traduzidos, chaveados por `${id}:${lang}` (Fase 2)
+  const [titles, setTitles] = useState<Record<string, string>>({});
+  const titlesRef = useRef<Record<string, string>>({});
+  useEffect(() => { titlesRef.current = titles; }, [titles]);
 
   // sessao + plano (paywall)
   const [session, setSession] = useState<Session | null>(null);
@@ -211,6 +216,40 @@ export default function Home() {
       .then(setStats)
       .catch(() => {});
   }, [debouncedQ, session, scope]);
+
+  // traduz os titulos visiveis que estao em outro idioma (sob demanda + cache)
+  useEffect(() => {
+    if (!session) return;
+    const need = items.filter(
+      (it) => it.lang && it.lang !== lang && it.title && !titlesRef.current[`${it.id}:${lang}`],
+    );
+    if (need.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({
+            target: lang,
+            items: need.slice(0, 40).map((it) => ({ id: it.id, title: it.title, lang: it.lang })),
+          }),
+        });
+        const data = await res.json();
+        if (cancelled || !data?.translations) return;
+        setTitles((prev) => {
+          const nxt = { ...prev };
+          for (const [id, text] of Object.entries(data.translations)) nxt[`${id}:${lang}`] = text as string;
+          return nxt;
+        });
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [items, lang, session]);
+
+  // titulo exibido: traduzido se a noticia esta em outro idioma e ja temos a traducao
+  const shownTitle = (it: Item) =>
+    it.lang && it.lang !== lang ? titles[`${it.id}:${lang}`] ?? it.title : it.title;
 
   const toggleSector = (id: string) =>
     setSelected((prev) =>
@@ -394,7 +433,7 @@ export default function Home() {
                           {sectorLabel(it.sector, lang)}
                         </span>
                       </div>
-                      <h3>{it.title}</h3>
+                      <h3 title={shownTitle(it) !== it.title ? it.title : undefined}>{shownTitle(it)}</h3>
                       {it.summary && <p>{it.summary.slice(0, 220)}</p>}
                     </a>
                   </li>

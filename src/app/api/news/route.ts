@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
   let query = ctx.admin
     .from("news_articles")
-    .select("id, title, summary, source, url, sector, themes, country, published_at")
+    .select("id, title, summary, source, url, sector, themes, country, lang, published_at")
     .order("published_at", { ascending: false, nullsFirst: false })
     .range(page * limit, page * limit + limit - 1);
 
