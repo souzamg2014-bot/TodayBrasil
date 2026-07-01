@@ -12,7 +12,7 @@ export const PLANS = {
     perks: [
       "Feed completo (sem limite de 20)",
       "Busca em tudo",
-      "Lentes (M&A, Política, Investimentos...)",
+      "Temas (M&A, Política, Investimentos...)",
       "Fontes primárias: CVM, falências, CAGED, IBAMA",
       "Notícias do Mundo (EN/ES)",
     ],

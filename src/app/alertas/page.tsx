@@ -15,7 +15,7 @@ type Notif = {
   read_at: string | null; created_at: string;
 };
 
-const KIND_LABEL: Record<string, string> = { keyword: "Palavra-chave", sector: "Setor", lente: "Lente" };
+const KIND_LABEL: Record<string, string> = { keyword: "Palavra-chave", sector: "Setor", lente: "Tema" };
 const SECTOR_LABEL = new Map(SECTORS.map((s) => [s.id, s.label]));
 const THEME_LABEL = new Map(THEMES.map((t) => [t.id, t.label]));
 
@@ -175,7 +175,7 @@ export default function Alertas() {
       <div className="cadwrap caddenied">
         <a href="/"><span className="cadminilogo">Today<em>Brasil</em></span></a>
         <h1 className="cadlogo">Central de <em>Alertas</em></h1>
-        <p>Recurso dos planos pagos: monitore palavras-chave, setores e lentes, e seja avisado quando entrar uma notícia que casa, na central e por push.</p>
+        <p>Recurso dos planos pagos: monitore palavras-chave, setores e temas, e seja avisado quando entrar uma notícia que casa, na central e por push.</p>
         <a className="abtn" href="/">← Voltar ao feed</a>
       </div>
     );
@@ -196,7 +196,7 @@ export default function Alertas() {
           <select value={kind} onChange={(e) => { setKind(e.target.value as typeof kind); setValue(""); }} className="alinput">
             <option value="keyword">Palavra-chave</option>
             <option value="sector">Setor</option>
-            <option value="lente">Lente</option>
+            <option value="lente">Tema</option>
           </select>
           {kind === "keyword" && (
             <input className="alinput" placeholder="ex.: Petrobras, tarifa aço..." value={value}
@@ -210,7 +210,7 @@ export default function Alertas() {
           )}
           {kind === "lente" && (
             <select className="alinput" value={value} onChange={(e) => setValue(e.target.value)}>
-              <option value="">Escolha a lente...</option>
+              <option value="">Escolha o tema...</option>
               {THEMES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
           )}
@@ -222,7 +222,7 @@ export default function Alertas() {
         {err && <p className="hint" style={{ color: "crimson" }}>{err}</p>}
 
         {rules.length === 0 ? (
-          <p className="hint">Nenhum monitor ainda. Adicione palavras-chave, setores ou lentes acima.</p>
+          <p className="hint">Nenhum monitor ainda. Adicione palavras-chave, setores ou temas acima.</p>
         ) : (
           <ul className="allist">
             {rules.map((r) => (

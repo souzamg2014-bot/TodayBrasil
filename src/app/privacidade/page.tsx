@@ -33,7 +33,7 @@ export default function Privacidade() {
       <h2>2. Como usamos os dados</h2>
       <ul>
         <li>Autenticar o acesso e gerenciar a sua conta e o seu plano.</li>
-        <li>Operar funcionalidades como feed, lentes e Resumos Inteligentes.</li>
+        <li>Operar funcionalidades como feed, temas e Resumos Inteligentes.</li>
         <li>Melhorar a Plataforma, prevenir fraudes e cumprir obrigações legais.</li>
       </ul>
 

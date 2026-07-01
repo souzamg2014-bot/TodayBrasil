@@ -279,14 +279,14 @@ export default function Home() {
           <div className="lensbar">
             <button
               className={`lensnav left ${atStart ? "hidden" : ""}`}
-              aria-label="Lentes anteriores"
+              aria-label="Temas anteriores"
               onClick={() => nudgeLenses(-1)}
             >
               ‹
             </button>
             <div className="lenses" ref={lensesRef} onScroll={updateArrows} onWheel={onLensesWheel}>
               <span className="lenslabel">
-                Lentes <em>PRO</em>
+                Temas <em>PRO</em>
               </span>
               {THEMES.map((t) => (
                 <button
@@ -301,7 +301,7 @@ export default function Home() {
             </div>
             <button
               className={`lensnav right ${atEnd ? "hidden" : ""}`}
-              aria-label="Próximas lentes"
+              aria-label="Próximos temas"
               onClick={() => nudgeLenses(1)}
             >
               ›
@@ -383,7 +383,7 @@ export default function Home() {
                   <h3>Você viu as {FREE_LIMIT} primeiras.</h3>
                   <p>
                     Assine o <strong>Pro</strong> por <strong>R$ 9,90/mês</strong> e libere o feed
-                    completo, a busca, as lentes e as fontes primárias (CVM, falências, CAGED, IBAMA).
+                    completo, a busca, os temas e as fontes primárias (CVM, falências, CAGED, IBAMA).
                   </p>
                   <button className="assinarbig" onClick={() => setShowPlans(true)}>
                     Ver planos
