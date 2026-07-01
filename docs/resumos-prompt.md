@@ -45,7 +45,11 @@ Princípios inegociáveis:
 3. **destaques**: 3 a 6 bullets, cada um `{ "fato": "...", "fonte": "Veículo", "url": "https://..." }`.
    Um destaque por assunto; `fato` é factual e curto.
 4. **fontes**: lista `{ "titulo": "...", "url": "..." }` de TODAS as fontes cruzadas. `n_fontes` = tamanho.
-5. **social**: adaptação do mesmo conteúdo para as redes (mesmas regras: sem travessão, fiel às
+5. **arte_titulo**: título curto e forte que vira a ARTE do post (obrigatório). Ponha entre
+   `[colchetes]` a palavra ou frase de destaque, que sai PINTADA com a cor do destaque na arte.
+   Sempre inclua exatamente um trecho entre colchetes (ex.: "Suzano fecha acordo bilionário e cria a
+   [Arbex]"). Sem travessão, sem clickbait.
+6. **social**: adaptação do mesmo conteúdo para as redes (mesmas regras: sem travessão, fiel às
    fontes). **Post único** (sem carrossel): cada rede recebe um **título** e a **copy da legenda**.
    O usuário monta uma arte padrão por fora, então o texto é o entregável.
    - **linkedin**: `{ "titulo": "...", "legenda": "..." }`. Tom executivo, 1 a 3 parágrafos curtos.
@@ -73,6 +77,7 @@ Princípios inegociáveis:
       { "titulo": "...", "url": "https://..." }
     ],
     "n_fontes": 4,
+    "arte_titulo": "... [destaque] ...",
     "social": {
       "linkedin": { "titulo": "...", "legenda": "...\n\n...\n\nSiga a Today Brasil para não perder nenhuma notícia.\n\n#fusoeseaquisicoes #negocios" },
       "instagram": { "titulo": "...", "legenda": "...\n\nSiga @brasil.today para não perder nenhuma notícia.\n\n#fusoeseaquisicoes #negocios #brasil" }
