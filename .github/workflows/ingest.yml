@@ -21,6 +21,14 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Auditoria de conteudo (rede de seguranca): apaga qualquer lixo
+      # (publieditorial/promo) que tenha escapado, ANTES de virar feed/alerta.
+      # A ingestao ja barra na entrada; aqui limpa o que entrou nos ultimos 120 min.
+      - run: node scripts/audit-content.mjs --purge
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AUDIT_SINCE_MIN: "120"
       # Central de Alertas: cruza as noticias recem-coletadas com as regras dos
       # usuarios e gera notificacoes. Web Push so dispara se as chaves VAPID
       # estiverem nos secrets (senao, fica so na central in-app).

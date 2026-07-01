@@ -18,6 +18,7 @@ import { SOURCES } from "./sources.pt.mjs";
 import { SOURCES_INTL } from "./sources.intl.mjs";
 import { classifyThemes } from "./themes.mjs";
 import { classify } from "./classify.mjs";
+import { isJunk } from "./junk.mjs";
 
 // idioma default (fontes PT). Fontes intl trazem o proprio lang.
 const LANG = process.env.INGEST_LANG || "pt";
@@ -197,18 +198,7 @@ const safeDate = (s) => {
   return isNaN(d.getTime()) ? null : d.toISOString();
 };
 
-// descarta titulos-lixo: filings da SEC + propaganda/cupom (afiliados)
-function isJunk(title = "") {
-  const t = title || "";
-  // SEC filings (intl)
-  if (/^\s*(Form\s+(144|3|4|5|S-1|8-K|10-K|10-Q|6-K|13[DGF])|DEF\s*14A|SC\s*13|Schedule\s*13)\b/i.test(t)) return true;
-  if (/\bForm\s*144\b|\bDEF\s*14A\b/i.test(t)) return true;
-  // cupom / codigo promocional / propaganda de desconto (NAO pega "cupom cambial/de juros")
-  if (/^\s*(cupom|cupons|c[oó]digo promocional|c[oó]digo de desconto|vale[- ]?desconto)\b/i.test(t)) return true;
-  if (/\bc[oó]digo promocional\b/i.test(t)) return true;
-  if (/\bcupom\b.*\b(off|desconto|%)/i.test(t)) return true;
-  return false;
-}
+// descarte de lixo (titulo SEC/cupom + URL publieditorial): scripts/junk.mjs
 
 // Suporta RSS (<item>) e Atom (<entry>). feed = { sector, lang? }.
 function parseEntries(xml, host, feed = {}) {
@@ -322,7 +312,7 @@ async function main() {
         try {
           const { txt, source, via } = await getFeed(feed);
           if (via === "google") viaGoogle++;
-          const articles = parseEntries(txt, source, feed).filter((a) => a.title && a.url && !isJunk(a.title));
+          const articles = parseEntries(txt, source, feed).filter((a) => a.title && a.url && !isJunk(a.title, a.url));
           if (articles.length === 0) {
             console.log(`  ${feed.url}: 0 itens`);
             failed.push(feed.url);
