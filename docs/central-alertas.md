@@ -34,16 +34,16 @@ Canais por regra: `in_app` (sempre) + `push` (opcional). Recurso **pago** (Pro/P
 ### 1. Rodar o SQL (obrigatório)
 No Supabase, SQL Editor, rodar `supabase/13_alerts.sql` uma vez. Já libera a central in-app (config de alertas + notificações).
 
-### 2. Web Push (opcional, custo zero)
-1. `npm i web-push` (dependência open-source, sem serviço pago)
-2. `npx web-push generate-vapid-keys` (gera par de chaves)
-3. Variáveis de ambiente (Vercel + GitHub Actions secrets):
-   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = chave pública
-   - `VAPID_PRIVATE_KEY` = chave privada
-   - `VAPID_SUBJECT` = `mailto:seu-email@dominio` (opcional)
-4. (Opcional) adicionar ícone `public/icon-192.png` para a notificação.
+### 2. Web Push (custo zero)
+Já feito localmente: `web-push` instalado e chaves VAPID geradas (estão no `.env.local`, gitignored). **Falta só publicar as 3 variáveis** nos ambientes:
 
-Sem esses passos, o push fica desativado em silêncio e a central in-app segue funcionando.
+- **Vercel** (Settings > Environment Variables): `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+- **GitHub** (repo > Settings > Secrets and variables > Actions): as mesmas 3 (o workflow já as referencia)
+
+Copie os valores do `.env.local`. Sem elas nos ambientes, o push fica desativado em silêncio e a central in-app segue funcionando. Ícones já existem em `public/` (gerados por `scripts/gen-icons.mjs`).
+
+### 3. PWA (instalável, custo zero)
+Já configurado: `public/manifest.json`, ícones (`icon-192/512`, `apple-touch-icon`), `public/sw.js` (offline shell + push) e registro do SW via `components/PWARegister.tsx`. No celular, o navegador oferece "Adicionar à tela de início" e o site abre em tela cheia como app. É a base natural para um app nativo depois (Expo/wrapper reaprovei­tando a mesma API).
 
 ## Roadmap (próximas fases)
 - **E-mail**: digest/na hora via Resend (free tier, precisa de domínio verificado). Já cabe como canal `email`.

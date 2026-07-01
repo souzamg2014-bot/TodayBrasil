@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
+import PWARegister from "@/components/PWARegister";
 
 // Masthead de jornal classico (Didone, alto contraste)
 const playfair = Playfair_Display({
@@ -14,6 +15,16 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "TodayBrasil",
   description: "Sua fonte de notícias.",
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "TodayBrasil" },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
 };
 
 // Aplica o tema salvo antes da pintura (evita flash). Default = claro.
@@ -25,7 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <PWARegister />
+        {children}
+      </body>
     </html>
   );
 }
