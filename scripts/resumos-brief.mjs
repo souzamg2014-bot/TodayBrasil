@@ -6,11 +6,11 @@
 // cruzando o maior numero de fontes. Depois: resumos-insert.mjs.
 //
 // Rodar:  node scripts/resumos-brief.mjs
-//   JANELA=tarde            (manha|tarde|noite; default = janela atual pelo relogio BRT)
+//   JANELA=tarde            (manha|tarde; default = janela atual pelo relogio BRT)
 //   DATA=2026-06-28         (dia de referencia; default = hoje)
 // Gera: resumos-brief.md (na raiz do projeto)
 //
-// Janelas (BRT): manha = 18:00(d-1)->07:00 | tarde = 07:00->13:00 | noite = 13:00->18:00
+// Janelas (BRT, cobrem 24h sem sobreposicao): manha = 00:00->12:00 | tarde = 12:00->24:00
 // ============================================================
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -42,11 +42,11 @@ const TEMAS = [
   { id: "politica", label: "Política & Regulação", lens: "politica" },
 ];
 
-// janelas em horas locais BRT; manha atravessa a meia-noite
+// janelas em horas locais BRT; cobrem o dia inteiro sem sobreposicao.
+// tarde termina as 24h = 00:00 do dia seguinte.
 const JANELAS = {
-  manha: { label: "Manhã", faixa: "18h–7h", start: 18, end: 7, crossMidnight: true },
-  tarde: { label: "Tarde", faixa: "7h–13h", start: 7, end: 13, crossMidnight: false },
-  noite: { label: "Noite", faixa: "13h–18h", start: 13, end: 18, crossMidnight: false },
+  manha: { label: "Manhã", faixa: "0h–12h", start: 0, end: 12 },
+  tarde: { label: "Tarde", faixa: "12h–24h", start: 12, end: 24 },
 };
 
 const BRT = "-03:00";
@@ -58,30 +58,28 @@ function janelaAtual() {
     new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", hour12: false, timeZone: "America/Sao_Paulo" })
       .format(new Date()),
   );
-  if (h >= 7 && h < 13) return "tarde";
-  if (h >= 13 && h < 18) return "noite";
-  return "manha";
+  return h < 12 ? "manha" : "tarde";
 }
 
 const janelaId = (process.env.JANELA || janelaAtual()).toLowerCase();
 const J = JANELAS[janelaId];
-if (!J) { console.error(`JANELA invalida: ${janelaId}. Use manha|tarde|noite.`); process.exit(1); }
+if (!J) { console.error(`JANELA invalida: ${janelaId}. Use manha|tarde.`); process.exit(1); }
 
 // data de referencia (YYYY-MM-DD) em BRT
 const hojeBRT = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 const dataRef = process.env.DATA || hojeBRT;
 
-// limites ISO da janela (em BRT). manha comeca no dia anterior as 18:00.
+// limites ISO da janela (em BRT). tarde termina as 24h = 00:00 do dia seguinte.
 function isoAt(dateStr, hour) {
   return `${dateStr}T${String(hour).padStart(2, "0")}:00:00${BRT}`;
 }
-function diaAnterior(dateStr) {
+function diaSeguinte(dateStr) {
   const d = new Date(`${dateStr}T12:00:00${BRT}`);
-  d.setDate(d.getDate() - 1);
+  d.setDate(d.getDate() + 1);
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(d);
 }
-const startISO = J.crossMidnight ? isoAt(diaAnterior(dataRef), J.start) : isoAt(dataRef, J.start);
-const endISO = isoAt(dataRef, J.end);
+const startISO = isoAt(dataRef, J.start);
+const endISO = J.end >= 24 ? isoAt(diaSeguinte(dataRef), J.end - 24) : isoAt(dataRef, J.end);
 
 async function candidatos(t) {
   let q = supabase

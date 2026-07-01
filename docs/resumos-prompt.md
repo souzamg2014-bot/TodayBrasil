@@ -3,7 +3,7 @@
 Guia para escrever cada **resumo agregado** a partir dos candidatos coletados na janela.
 Um resumo por **tema** por **janela**. A saída é um JSON pronto para `scripts/resumos-insert.mjs`.
 
-Janelas (cobrem 24h): **manha** = 18:00(d-1)→07:00 · **tarde** = 07:00→13:00 · **noite** = 13:00→18:00.
+Janelas (cobrem 24h, sem sobreposição): **manha** = 00:00→12:00 · **tarde** = 12:00→24:00.
 
 ---
 
@@ -84,5 +84,5 @@ Princípios inegociáveis:
 ## Regras finais
 - Se a janela tiver pouco ou nenhum material para um tema, escreva um resumo curto e honesto
   (não invente para preencher) e use `n_fontes` real. Se não houver NADA, omita o tema do array.
-- `tema` ∈ {ma, startup, inovacao, industria, politica}; `janela` ∈ {manha, tarde, noite}.
+- `tema` ∈ {ma, startup, inovacao, industria, politica}; `janela` ∈ {manha, tarde}.
 - Tamanho-alvo do `resumo`: 150 a 350 palavras. Linguagem PT-BR, terceira pessoa.

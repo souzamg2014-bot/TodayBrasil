@@ -1,13 +1,13 @@
 -- ============================================================
 -- TodayBrasil - Resumos Inteligentes (premium on-site)
--- Por TEMA (5) e por JANELA de tempo (manha|tarde|noite), agregamos o maior
+-- Por TEMA (5) e por JANELA de tempo (manha|tarde, internas), agregamos o maior
 -- numero de fontes do dia num unico card que resume o que aconteceu.
 -- Acesso so no plano Premium (id de storage 'caderno'). Leitura SO via servidor
 -- (service role): a /api/resumos checa o plano. Sem policy de select no cliente.
 -- Rode no SQL Editor (uma vez).
 --
--- Janelas (cobrem 24h):
---   manha = 18:00(d-1) -> 07:00   | tarde = 07:00 -> 13:00 | noite = 13:00 -> 18:00
+-- Janelas (cobrem 24h, sem sobreposicao):
+--   manha = 00:00 -> 12:00   | tarde = 12:00 -> 24:00
 -- ============================================================
 
 create table if not exists public.resumos (

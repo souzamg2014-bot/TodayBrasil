@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { TEMAS, JANELAS, getTema, getJanela } from "@/lib/resumos";
+import { TEMAS, getTema, getJanela } from "@/lib/resumos";
 
 type Destaque = { fato: string; fonte?: string; url?: string };
 type Fonte = { titulo?: string; url?: string };
@@ -22,7 +22,6 @@ export default function Resumos() {
   const [state, setState] = useState<"loading" | "ok" | "forbidden" | "anon">("loading");
   const [items, setItems] = useState<Resumo[]>([]);
   const [tema, setTema] = useState<string | null>(null);
-  const [janela, setJanela] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -43,14 +42,12 @@ export default function Resumos() {
       <div className="cadwrap caddenied">
         <a href="/"><span className="cadminilogo">Today<em>Brasil</em></span></a>
         <h1 className="cadlogo">Resumos <em>Inteligentes</em></h1>
-        <p>Conteúdo do plano <strong>Premium</strong> (R$ 29,90/mês): o que aconteceu em cada setor, resumido por janela do dia a partir de dezenas de fontes.</p>
+        <p>Conteúdo do plano <strong>Premium</strong> (R$ 29,90/mês): o que aconteceu em cada setor, resumido a partir de dezenas de fontes.</p>
         <a className="abtn" href="/">← Voltar ao feed</a>
       </div>
     );
 
-  const shown = items.filter(
-    (r) => (!tema || r.tema === tema) && (!janela || r.janela === janela),
-  );
+  const shown = items.filter((r) => !tema || r.tema === tema);
 
   return (
     <div className="cadwrap">
@@ -59,21 +56,13 @@ export default function Resumos() {
         <a className="hint" href="/">← feed</a>
       </header>
       <h1 className="cadlogo">Resumos <em>Inteligentes</em></h1>
-      <p className="cadsub">O que aconteceu em cada tema, resumido por janela do dia a partir de várias fontes.</p>
+      <p className="cadsub">O que aconteceu em cada tema, resumido a partir de várias fontes.</p>
 
       <div className="cadtemas">
         <button className={`tchip ${!tema ? "on" : ""}`} onClick={() => setTema(null)}>Todos os temas</button>
         {TEMAS.map((t) => (
           <button key={t.id} className={`tchip ${tema === t.id ? "on" : ""}`} onClick={() => setTema(t.id)}>
             {t.label}
-          </button>
-        ))}
-      </div>
-      <div className="cadtemas">
-        <button className={`tchip ${!janela ? "on" : ""}`} onClick={() => setJanela(null)}>Dia inteiro</button>
-        {JANELAS.map((j) => (
-          <button key={j.id} className={`tchip ${janela === j.id ? "on" : ""}`} onClick={() => setJanela(j.id)}>
-            {j.label} <span className="jhora">{j.faixa}</span>
           </button>
         ))}
       </div>
@@ -90,7 +79,7 @@ export default function Resumos() {
                 <div className="resmeta">
                   <span className="restema">{tm?.label ?? r.tema}</span>
                   <span className="dot">•</span>
-                  <span className="resjanela">{jn?.label ?? r.janela} <em>{jn?.faixa}</em></span>
+                  <span className="resjanela">{jn?.label ?? r.janela}</span>
                   <span className="dot">•</span>
                   <span>{dataLabel(r.data_ref)}</span>
                   <span className="resfontes">{r.n_fontes} fontes</span>

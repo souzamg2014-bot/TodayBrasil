@@ -1,5 +1,6 @@
-// Resumos Inteligentes: temas (5) e janelas de tempo (3). Fonte unica usada no
-// front (/resumos) e nos scripts de geracao. Absorve os antigos temas do caderno.
+// Resumos Inteligentes: temas (5) e janelas de tempo (2: manha|tarde). Fonte unica
+// usada no front (/resumos) e nos scripts de geracao. As janelas sao INTERNAS: o
+// site nao expoe seletor de janela, so exibe o resumo pronto rotulado Manha/Tarde.
 
 export type Tema = { id: string; label: string };
 
@@ -22,9 +23,8 @@ export type Janela = {
 };
 
 export const JANELAS: Janela[] = [
-  { id: "manha", label: "Manhã", faixa: "18h–7h", start: 18, end: 7 },
-  { id: "tarde", label: "Tarde", faixa: "7h–13h", start: 7, end: 13 },
-  { id: "noite", label: "Noite", faixa: "13h–18h", start: 13, end: 18 },
+  { id: "manha", label: "Manhã", faixa: "0h–12h", start: 0, end: 12 },
+  { id: "tarde", label: "Tarde", faixa: "12h–24h", start: 12, end: 24 },
 ];
 
 const TEMA_BY = new Map(TEMAS.map((t) => [t.id, t]));

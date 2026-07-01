@@ -34,7 +34,7 @@ const supabase = createClient(
 );
 
 const TEMAS = new Set(["ma", "startup", "inovacao", "industria", "politica"]);
-const JANELAS = new Set(["manha", "tarde", "noite"]);
+const JANELAS = new Set(["manha", "tarde"]);
 
 // monta o markdown social (post unico por rede)
 function socialMd(a) {
