@@ -48,10 +48,17 @@ function isPaid(plan, exp) {
   return new Date(exp).getTime() > Date.now();
 }
 
-// normaliza p/ comparar keyword: minusculo, sem acento.
+// normaliza p/ comparar keyword: minusculo, sem acento, nao-alfanumerico -> espaco,
+// com espaco nas pontas (fronteira de palavra). Evita casar "ia" dentro de
+// "familia" ou "aco" dentro de "espaco" (mesma logica de classify/themes).
 const COMBINING = /[̀-ͯ]/g; // marcas de acento (apos NFD)
 function norm(s = "") {
-  return s.normalize("NFD").replace(COMBINING, "").toLowerCase();
+  return (
+    " " +
+    s.normalize("NFD").replace(COMBINING, "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim() +
+    " "
+  );
 }
 
 function ruleMatchesArticle(rule, art) {
@@ -59,7 +66,8 @@ function ruleMatchesArticle(rule, art) {
   if (rule.kind === "lente") return Array.isArray(art.themes) && art.themes.includes(rule.value);
   if (rule.kind === "keyword") {
     const hay = norm(`${art.title} ${art.summary ?? ""}`);
-    return hay.includes(norm(rule.value));
+    const kw = norm(rule.value).trim();        // "petrobras", "tarifa aco"
+    return kw.length > 0 && hay.includes(" " + kw); // inicio de palavra (prefixo)
   }
   return false;
 }

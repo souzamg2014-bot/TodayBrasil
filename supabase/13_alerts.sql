@@ -49,7 +49,9 @@ create table if not exists public.notifications (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   rule_id     uuid references public.alert_rules(id) on delete set null,
-  article_id  uuid references public.news_articles(id) on delete cascade,
+  -- set null (nao cascade): o robo apaga a noticia com +48h, mas a notificacao
+  -- guarda o proprio title/body/url e deve sobreviver (historico do usuario).
+  article_id  uuid references public.news_articles(id) on delete set null,
   kind        text,                                  -- copia do kind da regra (display)
   value       text,                                  -- copia do value da regra (display)
   title       text not null,
