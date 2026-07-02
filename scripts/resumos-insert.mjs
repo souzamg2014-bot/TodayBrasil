@@ -33,8 +33,13 @@ const supabase = createClient(
   { auth: { persistSession: false } },
 );
 
-const TEMAS = new Set(["ma", "startup", "inovacao", "industria", "politica"]);
-const JANELAS = new Set(["manha", "tarde"]);
+const TEMAS = new Set([
+  "ma", "agro", "comercio", "industria", "tecnologia", "telecom",
+  "financeiro", "transporte", "energia", "saude", "construcao",
+]);
+// Janelas de tempo foram removidas: um resumo por setor por dia. O campo `janela`
+// no banco recebe um valor fixo so pra manter a unicidade (tema, janela, data_ref).
+const JANELA = "geral";
 
 // monta o markdown social (post unico por rede)
 function socialMd(a) {
@@ -67,14 +72,15 @@ async function main() {
   let escritos = 0;
 
   for (const [i, a] of arr.entries()) {
-    if (!a || !TEMAS.has(a.tema) || !JANELAS.has(a.janela) || !a.data_ref || !a.titulo) {
-      erros.push(`#${i + 1}: faltam campos (tema/janela validos, data_ref, titulo)`);
+    if (!a || !TEMAS.has(a.tema) || !a.data_ref || !a.titulo) {
+      erros.push(`#${i + 1}: faltam campos (tema valido, data_ref, titulo)`);
       continue;
     }
+    const janela = a.janela || JANELA; // janelas removidas: default 'geral'
     const n = a.n_fontes ?? (Array.isArray(a.fontes) ? a.fontes.length : 0);
     rows.push({
       tema: a.tema,
-      janela: a.janela,
+      janela,
       data_ref: a.data_ref,
       titulo: a.titulo,
       resumo: a.resumo ?? null,
@@ -89,7 +95,7 @@ async function main() {
     if (a.social) {
       const dir = join(ROOT, "redes-sociais", a.tema, a.data_ref);
       mkdirSync(dir, { recursive: true });
-      writeFileSync(join(dir, `${a.janela}.md`), socialMd(a), "utf8");
+      writeFileSync(join(dir, `${janela}.md`), socialMd({ ...a, janela }), "utf8");
       escritos++;
     }
   }

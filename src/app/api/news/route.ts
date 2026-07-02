@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getContext } from "@/lib/api-auth";
 import { FREE_LIMIT } from "@/lib/plans";
+import { ALL_MEMBERS, regionMembers } from "@/lib/countries";
 
 const PAGE = 24;
 
@@ -15,9 +16,10 @@ export async function GET(request: Request) {
   const themes = ctx.paid
     ? (sp.get("theme") ?? "").split(",").map((s) => s.trim()).filter(Boolean)
     : [];
-  // escopo: 'mundo' = tudo != pt (com filtro opcional de pais); 'br' (default) = pt
+  // escopo: 'mundo' = as 3 regioes economicas (EUA/Asia/Zona do Euro), com filtro
+  // opcional por regiao; 'br' (default) = pt.
   const scope = sp.get("scope") === "mundo" ? "mundo" : "br";
-  const country = (sp.get("country") ?? "").trim();
+  const region = (sp.get("region") ?? "").trim();
 
   // ---- PAYWALL no servidor (nao confia no front) ----
   const q = ctx.paid ? (sp.get("q") ?? "").trim() : "";          // busca: so Pro
@@ -31,8 +33,10 @@ export async function GET(request: Request) {
     .range(page * limit, page * limit + limit - 1);
 
   if (scope === "mundo") {
-    query = query.neq("lang", "pt");
-    if (country) query = query.eq("country", country);
+    // Mundo = notícias das regiões cobertas. Regiao selecionada = só os seus paises;
+    // sem regiao = a união de todas (isso já exclui paises fora do circuito).
+    const codes = region ? regionMembers(region) : ALL_MEMBERS;
+    query = query.neq("lang", "pt").in("country", codes.length ? codes : ALL_MEMBERS);
   } else {
     query = query.eq("lang", "pt");
   }

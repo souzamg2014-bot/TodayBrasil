@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { TEMAS, getTema, getJanela } from "@/lib/resumos";
+import { TEMAS, getTema } from "@/lib/resumos";
+import { CONTACT, whatsappLink, emailLink } from "@/lib/contact";
 
 type Destaque = { fato: string; fonte?: string; url?: string };
 type Fonte = { titulo?: string; url?: string };
@@ -13,39 +14,33 @@ type Resumo = {
 };
 
 function dataLabel(d: string) {
-  // d = "YYYY-MM-DD"
   const [y, m, day] = d.split("-").map(Number);
   return new Date(y, m - 1, day).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
 export default function Resumos() {
-  const [state, setState] = useState<"loading" | "ok" | "forbidden" | "anon">("loading");
+  const [state, setState] = useState<"loading" | "ok" | "anon">("loading");
   const [items, setItems] = useState<Resumo[]>([]);
   const [tema, setTema] = useState<string | null>(null);
+  const [openFontes, setOpenFontes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setState("anon"); return; }
       const res = await fetch("/api/resumos", { headers: { Authorization: `Bearer ${session.access_token}` } });
-      if (res.status === 403) { setState("forbidden"); return; }
       const data = await res.json();
       setItems(data.resumos ?? []);
       setState("ok");
     })();
   }, []);
 
-  if (state === "loading") return <div className="cadwrap"><p className="hint">Carregando...</p></div>;
-  if (state === "anon") return <div className="cadwrap"><p>Faça login.</p><a className="hint" href="/">← início</a></div>;
-  if (state === "forbidden")
-    return (
-      <div className="cadwrap caddenied">
-        <a href="/"><span className="cadminilogo">Today<em>Brasil</em></span></a>
-        <h1 className="cadlogo">Resumos <em>Inteligentes</em></h1>
-        <p>Conteúdo do plano <strong>Pro</strong> (R$ 9,90/mês): o que aconteceu em cada setor, resumido a partir de dezenas de fontes.</p>
-        <a className="abtn" href="/">← Voltar ao feed</a>
-      </div>
-    );
+  const toggleFontes = (id: string) =>
+    setOpenFontes((prev) => {
+      const nxt = new Set(prev);
+      if (nxt.has(id)) nxt.delete(id); else nxt.add(id);
+      return nxt;
+    });
 
   const shown = items.filter((r) => !tema || r.tema === tema);
 
@@ -55,60 +50,125 @@ export default function Resumos() {
         <a href="/"><span className="cadminilogo">Today<em>Brasil</em></span></a>
         <a className="hint" href="/">← feed</a>
       </header>
-      <h1 className="cadlogo">Resumos <em>Inteligentes</em></h1>
-      <p className="cadsub">O que aconteceu em cada tema, resumido a partir de várias fontes.</p>
 
-      <div className="cadtemas">
-        <button className={`tchip ${!tema ? "on" : ""}`} onClick={() => setTema(null)}>Todos os temas</button>
-        {TEMAS.map((t) => (
-          <button key={t.id} className={`tchip ${tema === t.id ? "on" : ""}`} onClick={() => setTema(t.id)}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* ===== PITCH: produto de inteligência (clipping "sob consulta") ===== */}
+      <section className="respitch">
+        <span className="resbadge">Inteligência sob consulta</span>
+        <h1 className="cadlogo">Resumos <em>Inteligentes</em></h1>
+        <p className="respitchsub">
+          Um serviço de <strong>clipping inteligente</strong>: mapeamos todos os setores da economia,
+          cruzamos dezenas de fontes e reescrevemos com o nosso tom o que realmente importou, num
+          panorama por setor. Cada resumo traz a lista completa das fontes pesquisadas.
+        </p>
 
-      {shown.length === 0 ? (
-        <p className="hint" style={{ marginTop: 28 }}>Nenhum resumo publicado ainda.</p>
-      ) : (
-        <ul className="reslist">
-          {shown.map((r) => {
-            const tm = getTema(r.tema);
-            const jn = getJanela(r.janela);
-            return (
-              <li key={r.id} className="rescard">
-                <div className="resmeta">
-                  <span className="restema">{tm?.label ?? r.tema}</span>
-                  <span className="dot">•</span>
-                  <span className="resjanela">{jn?.label ?? r.janela}</span>
-                  <span className="dot">•</span>
-                  <span>{dataLabel(r.data_ref)}</span>
-                  <span className="resfontes">{r.n_fontes} fontes</span>
-                </div>
-                <h3 className="restitulo">{r.titulo}</h3>
-                {r.resumo && (
-                  <div className="resbody">
-                    {r.resumo.split(/\n{2,}/).map((p, i) => (
-                      <p key={i}>{p.replace(/^#+\s*/, "")}</p>
-                    ))}
-                  </div>
-                )}
-                {Array.isArray(r.destaques) && r.destaques.length > 0 && (
-                  <ul className="resdestaques">
-                    {r.destaques.map((d, i) => (
-                      <li key={i}>
-                        <span>{d.fato}</span>
-                        {d.url && d.fonte && (
-                          <a href={d.url} target="_blank" rel="noopener noreferrer" className="resfonte">{d.fonte}</a>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            );
-          })}
+        <ul className="ressetores">
+          {TEMAS.map((t) => <li key={t.id}>{t.label}</li>)}
         </ul>
-      )}
+
+        <div className="rescta">
+          <div className="resprice">
+            <span className="resprice-k">Valores</span>
+            <strong>sob consulta</strong>
+          </div>
+          <a className="resbtn wa" href={whatsappLink()} target="_blank" rel="noopener noreferrer">
+            WhatsApp {CONTACT.whatsappLabel}
+          </a>
+          <a className="resbtn mail" href={emailLink()}>
+            {CONTACT.email}
+          </a>
+        </div>
+      </section>
+
+      {/* ===== AMOSTRAS: resumos publicados como demonstração ===== */}
+      <section className="ressamples">
+        <h2 className="resh2">Amostras recentes</h2>
+        <p className="cadsub">Veja o padrão do produto: um panorama por setor, com as fontes cruzadas.</p>
+
+        {state === "anon" ? (
+          <p className="hint" style={{ marginTop: 16 }}>
+            <a href="/">Faça login</a> para ver as amostras.
+          </p>
+        ) : state === "loading" ? (
+          <p className="hint" style={{ marginTop: 16 }}>Carregando amostras...</p>
+        ) : (
+          <>
+            <div className="cadtemas">
+              <button className={`tchip ${!tema ? "on" : ""}`} onClick={() => setTema(null)}>Todos os setores</button>
+              {TEMAS.map((t) => (
+                <button key={t.id} className={`tchip ${tema === t.id ? "on" : ""}`} onClick={() => setTema(t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {shown.length === 0 ? (
+              <p className="hint" style={{ marginTop: 28 }}>Nenhuma amostra publicada ainda.</p>
+            ) : (
+              <ul className="reslist">
+                {shown.map((r) => {
+                  const tm = getTema(r.tema);
+                  const fontes = Array.isArray(r.fontes) ? r.fontes : [];
+                  const isOpen = openFontes.has(r.id);
+                  return (
+                    <li key={r.id} className="rescard">
+                      <div className="resmeta">
+                        <span className="restema">{tm?.label ?? r.tema}</span>
+                        <span className="dot">•</span>
+                        <span>{dataLabel(r.data_ref)}</span>
+                        <span className="resfontes">{r.n_fontes} fontes</span>
+                      </div>
+                      <h3 className="restitulo">{r.titulo}</h3>
+                      {r.resumo && (
+                        <div className="resbody">
+                          {r.resumo.split(/\n{2,}/).map((p, i) => (
+                            <p key={i}>{p.replace(/^#+\s*/, "")}</p>
+                          ))}
+                        </div>
+                      )}
+                      {Array.isArray(r.destaques) && r.destaques.length > 0 && (
+                        <ul className="resdestaques">
+                          {r.destaques.map((d, i) => (
+                            <li key={i}>
+                              <span>{d.fato}</span>
+                              {d.url && d.fonte && (
+                                <a href={d.url} target="_blank" rel="noopener noreferrer" className="resfonte">{d.fonte}</a>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {fontes.length > 0 && (
+                        <div className="resfontesbox">
+                          <button
+                            className={`resfontestoggle ${isOpen ? "on" : ""}`}
+                            onClick={() => toggleFontes(r.id)}
+                            aria-expanded={isOpen}
+                          >
+                            {isOpen ? "▾" : "▸"} Fontes ({fontes.length})
+                          </button>
+                          {isOpen && (
+                            <ul className="resfonteslista">
+                              {fontes.map((f, i) => (
+                                <li key={i}>
+                                  {f.url ? (
+                                    <a href={f.url} target="_blank" rel="noopener noreferrer">{f.titulo || f.url}</a>
+                                  ) : (
+                                    <span>{f.titulo}</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
     </div>
   );
 }

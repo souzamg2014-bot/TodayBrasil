@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Inicia a assinatura (Pro R$ 9,90). O front manda o token do usuario no header.
+// Inicia a assinatura (Pro R$ 24,90). O front manda o token do usuario no header.
 // Enquanto PAGBANK_TOKEN nao existir, retorna uma mensagem amigavel.
 export async function POST(request: Request) {
   const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ message: "Faça login para assinar." }, { status: 401 });
 
-  const plan = "pro"; // plano unico: Pro (R$ 9,90)
+  const plan = "pro"; // plano unico: Pro (R$ 24,90)
 
   const PAGBANK_TOKEN = process.env.PAGBANK_TOKEN;
   if (!PAGBANK_TOKEN) {

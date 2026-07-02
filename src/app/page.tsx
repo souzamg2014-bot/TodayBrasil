@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react
 import type { Session } from "@supabase/supabase-js";
 import { sectorLabel } from "@/lib/sectors";
 import { THEMES, getTheme } from "@/lib/themes";
-import { COUNTRIES, countryLabel } from "@/lib/countries";
+import { REGIONS, regionLabel } from "@/lib/countries";
 import { timeAgo } from "@/lib/time";
 import { supabase } from "@/lib/supabase";
 import Entrance from "@/components/Entrance";
@@ -39,10 +39,10 @@ export default function Home() {
   const [selected, setSelected] = useState<string[]>([]);
   // lente ativa (uma de cada vez; null = nenhuma)
   const [theme, setTheme] = useState<string | null>(null);
-  // escopo: 'br' (pt) ou 'mundo' (todos != pt)
+  // escopo: 'br' (pt) ou 'mundo' (as 3 regioes economicas)
   const [scope, setScope] = useState<"br" | "mundo">("br");
-  // pais selecionado no Mundo (null = todos)
-  const [country, setCountry] = useState<string | null>(null);
+  // regiao selecionada no Mundo (null = todas)
+  const [region, setRegion] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [items, setItems] = useState<Item[]>([]);
@@ -67,10 +67,9 @@ export default function Home() {
   const [pdfItem, setPdfItem] = useState<Item | null>(null); // leitor de PDF da CVM
   const paid = isPaid(plan, planExp);
 
-  const openResumos = () => {
-    if (paid) window.location.href = "/resumos";
-    else setShowPlans(true);
-  };
+  // Resumos Inteligentes viraram um produto de inteligencia (clipping) a parte,
+  // "sob consulta". A pagina /resumos e a tela de venda, aberta a qualquer logado.
+  const openResumos = () => { window.location.href = "/resumos"; };
 
   const openAlertas = () => {
     if (paid) window.location.href = "/alertas";
@@ -98,11 +97,11 @@ export default function Home() {
     const qp = sp.get("q");
     const sec = sp.get("sector");
     const th = sp.get("theme");
-    const co = sp.get("country");
+    const rg = sp.get("region");
     if (qp) setQ(qp);
     if (sec) setSelected(sec.split(",").map((s) => s.trim()).filter(Boolean));
     if (th) setTheme(th);
-    if (co) { setScope("mundo"); setCountry(co); }
+    if (rg) { setScope("mundo"); setRegion(rg); }
   }, []);
 
   // carrega o plano do perfil ao logar
@@ -181,7 +180,7 @@ export default function Home() {
       setLoading(true);
       const params = new URLSearchParams({ sector: sectorParam, page: String(nextPage) });
       params.set("scope", scope);
-      if (scope === "mundo" && country) params.set("country", country);
+      if (scope === "mundo" && region) params.set("region", region);
       if (debouncedQ && paid) params.set("q", debouncedQ); // busca: so Pro
       if (scope === "br" && theme) params.set("theme", theme);
       try {
@@ -200,7 +199,7 @@ export default function Home() {
         if (id === reqId.current) setLoading(false);
       }
     },
-    [sectorParam, debouncedQ, theme, scope, country, paid, session],
+    [sectorParam, debouncedQ, theme, scope, region, paid, session],
   );
 
   // recarrega do zero quando muda setor/busca (so logado)
@@ -261,13 +260,13 @@ export default function Home() {
   // lente: clicar ativa; clicar de novo desliga
   const toggleTheme = (id: string) => setTheme((cur) => (cur === id ? null : id));
 
-  // troca Brasil/Mundo: limpa lente, pais e setores (contextos diferentes)
+  // troca Brasil/Mundo: limpa lente, regiao e setores (contextos diferentes)
   const switchScope = (s: "br" | "mundo") => {
     if (s === scope) return;
     setScope(s);
     setTheme(null);
     setSelected([]);
-    setCountry(null);
+    setRegion(null);
   };
 
   // gate: tela preta enquanto verifica; porta misteriosa se deslogado
@@ -276,8 +275,10 @@ export default function Home() {
   // home (porta) com usuario logado: ENTRAR entra direto no feed
   if (atHome) return <Entrance loggedIn onEnter={() => setAtHome(false)} />;
 
+  // contagem por regiao = soma das noticias dos paises que a compoem (stats vem por pais).
   const countryN = new Map((stats?.countries ?? []).map((c) => [c.country, c.n]));
-  const toggleCountry = (id: string) => setCountry((cur) => (cur === id ? null : id));
+  const regionN = (members: string[]) => members.reduce((sum, code) => sum + (countryN.get(code) ?? 0), 0);
+  const toggleRegion = (id: string) => setRegion((cur) => (cur === id ? null : id));
 
   return (
     <>
@@ -464,19 +465,19 @@ export default function Home() {
               <p className="hint">{t("clickCountry")}</p>
               <ul className="rank">
                 <li>
-                  <button className={`rankrow ${!country ? "on" : ""}`} onClick={() => setCountry(null)}>
+                  <button className={`rankrow ${!region ? "on" : ""}`} onClick={() => setRegion(null)}>
                     <span className="rl">🌐 {t("allCountries")}</span>
                   </button>
                 </li>
-                {COUNTRIES.map((c) => {
-                  const n = countryN.get(c.id) ?? 0;
+                {REGIONS.map((r) => {
+                  const n = regionN(r.members);
                   return (
-                    <li key={c.id}>
+                    <li key={r.id}>
                       <button
-                        className={`rankrow ${country === c.id ? "on" : ""}`}
-                        onClick={() => toggleCountry(c.id)}
+                        className={`rankrow ${region === r.id ? "on" : ""}`}
+                        onClick={() => toggleRegion(r.id)}
                       >
-                        <span className="rl">{c.flag} {countryLabel(c.id, lang)}</span>
+                        <span className="rl">{r.flag} {regionLabel(r.id, lang)}</span>
                         {n > 0 && <span className="rn">{n}</span>}
                       </button>
                     </li>

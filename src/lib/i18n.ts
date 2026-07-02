@@ -31,14 +31,14 @@ export const UI: Record<string, { pt: string; en: string }> = {
   // paywall
   paywallSeen: { pt: "Você viu as {n} primeiras.", en: "You have seen the first {n}." },
   paywallCopy: {
-    pt: "Assine o Pro por R$ 9,90/mês e libere o feed completo, a busca, os temas e as fontes primárias (CVM, falências, CAGED, IBAMA).",
-    en: "Subscribe to Pro for R$ 9.90/month and unlock the full feed, search, topics and primary sources (CVM, bankruptcies, CAGED, IBAMA).",
+    pt: "Assine o Pro por R$ 24,90/mês e libere o feed completo, a busca, os temas e as fontes primárias (CVM, falências, CAGED, IBAMA).",
+    en: "Subscribe to Pro for R$ 24.90/month and unlock the full feed, search, topics and primary sources (CVM, bankruptcies, CAGED, IBAMA).",
   },
   seePlans: { pt: "Ver planos", en: "See plans" },
   // sidebar
-  countries: { pt: "Países", en: "Countries" },
+  countries: { pt: "Regiões", en: "Regions" },
   clickCountry: { pt: "clique pra filtrar o Mundo", en: "click to filter the World" },
-  allCountries: { pt: "Todos os países", en: "All countries" },
+  allCountries: { pt: "Todas as regiões", en: "All regions" },
   allTopics: { pt: "Todos os temas", en: "All topics" },
   trendingSectors: { pt: "Setores em alta", en: "Trending sectors" },
   last7: { pt: "últimos 7 dias · clique pra filtrar", en: "last 7 days · click to filter" },

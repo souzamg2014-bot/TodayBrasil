@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
 import { getContext } from "@/lib/api-auth";
 
-// Resumos Inteligentes: leitura para qualquer plano pago (Pro, ativo).
+// Resumos Inteligentes: agora são AMOSTRAS do produto de inteligência (clipping),
+// exibidas na tela de venda. Leitura liberada para qualquer usuário autenticado
+// (não é mais conteúdo pago). Um resumo por setor por dia.
 //   GET /api/resumos            -> lista (mais recentes primeiro)
-//   GET /api/resumos?tema=ma    -> filtra por tema
-//   GET /api/resumos?janela=tarde -> filtra por janela
+//   GET /api/resumos?tema=agro  -> filtra por setor
 export async function GET(request: Request) {
   const ctx = await getContext(request);
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  if (!ctx.paid) return NextResponse.json({ error: "paid" }, { status: 403 });
 
-  const sp = new URL(request.url).searchParams;
-  const tema = sp.get("tema");
-  const janela = sp.get("janela");
+  const tema = new URL(request.url).searchParams.get("tema");
 
   let query = ctx.admin
     .from("resumos")
@@ -22,7 +20,6 @@ export async function GET(request: Request) {
     .order("published_at", { ascending: false })
     .limit(120);
   if (tema) query = query.eq("tema", tema);
-  if (janela) query = query.eq("janela", janela);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

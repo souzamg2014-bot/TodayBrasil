@@ -10,7 +10,7 @@
 // Google News (no idioma da fonte).
 // ============================================================
 
-export const SOURCES_INTL = [
+const SOURCES_INTL_ALL = [
   // ===================== ESTADOS UNIDOS (US) =====================
   { url: "https://www.reuters.com/business/", sector: "geral", lang: "en", country: "US" },
   { url: "https://apnews.com/hub/business", sector: "geral", lang: "en", country: "US" },
@@ -217,3 +217,10 @@ export const SOURCES_INTL = [
   // Educacao
   { url: "https://www.edsurge.com/articles_rss", sector: "educacao", lang: "en", country: "US" },
 ];
+
+// O "Mundo" foi reduzido a 3 regioes economicas (EUA, Asia, Zona do Euro).
+// Mantemos so as fontes desses paises; os demais (CA, MX, IN, AU, RU, SG, QA,
+// SA, AE, MEA, ZA, AFR, HK, CH...) saem da ingestao. Bate com REGIONS em
+// src/lib/countries.ts.
+const KEEP_COUNTRIES = new Set(["US", "CN", "JP", "KR", "DE", "FR", "ES", "IT", "NL", "GB"]);
+export const SOURCES_INTL = SOURCES_INTL_ALL.filter((s) => KEEP_COUNTRIES.has(s.country));

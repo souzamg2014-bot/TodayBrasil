@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const expires = new Date();
     expires.setMonth(expires.getMonth() + 1); // +1 mes (recorrencia renova a cada cobranca)
     await sb.from("profiles").update({
-      plan: "pro", // TODO: 'caderno' quando for o plano de R$ 29,90
+      plan: "pro", // plano unico Pro (R$ 24,90); 'caderno' e so legado
       plan_expires_at: expires.toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", userId);

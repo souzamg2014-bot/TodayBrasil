@@ -1,46 +1,39 @@
-// Paises/regioes das fontes internacionais (filtro "Mundo"). O `id` bate com o
-// campo country gravado em news_articles pela ingestao (scripts/sources.intl.mjs).
-// Ordem = ordem de exibicao na barra lateral de paises.
+// Regioes economicas do filtro "Mundo". Trocamos a lista longa de paises por 3
+// blocos do circuito economico: EUA, Asia e Zona do Euro. Cada regiao agrega os
+// codigos de pais (`members`) gravados em news_articles.country pela ingestao
+// (scripts/sources.intl.mjs). O feed do Mundo filtra por `country IN members`.
+// Ordem = ordem de exibicao na barra lateral.
 
-export type Country = { id: string; label: string; en: string; flag: string };
+export type Region = {
+  id: string;        // id da regiao (usado na URL e no filtro)
+  label: string;     // rotulo PT
+  en: string;        // rotulo EN
+  flag: string;      // emoji
+  members: string[]; // codigos de pais que compoem a regiao (batem com o country da ingestao)
+};
 
-export const COUNTRIES: Country[] = [
-  // Americas
-  { id: "US", label: "Estados Unidos", en: "United States", flag: "🇺🇸" },
-  { id: "CA", label: "Canadá", en: "Canada", flag: "🇨🇦" },
-  { id: "MX", label: "México", en: "Mexico", flag: "🇲🇽" },
-  // Europa
-  { id: "GB", label: "Reino Unido", en: "United Kingdom", flag: "🇬🇧" },
-  { id: "DE", label: "Alemanha", en: "Germany", flag: "🇩🇪" },
-  { id: "FR", label: "França", en: "France", flag: "🇫🇷" },
-  { id: "ES", label: "Espanha", en: "Spain", flag: "🇪🇸" },
-  { id: "IT", label: "Itália", en: "Italy", flag: "🇮🇹" },
-  { id: "NL", label: "Holanda", en: "Netherlands", flag: "🇳🇱" },
-  { id: "CH", label: "Suíça", en: "Switzerland", flag: "🇨🇭" },
-  // Asia-Pacifico
-  { id: "CN", label: "China", en: "China", flag: "🇨🇳" },
-  { id: "HK", label: "Hong Kong", en: "Hong Kong", flag: "🇭🇰" },
-  { id: "SG", label: "Singapura", en: "Singapore", flag: "🇸🇬" },
-  { id: "JP", label: "Japão", en: "Japan", flag: "🇯🇵" },
-  { id: "KR", label: "Coreia do Sul", en: "South Korea", flag: "🇰🇷" },
-  { id: "IN", label: "Índia", en: "India", flag: "🇮🇳" },
-  { id: "AU", label: "Austrália", en: "Australia", flag: "🇦🇺" },
-  // Russia / Oriente Medio / Africa
-  { id: "RU", label: "Rússia", en: "Russia", flag: "🇷🇺" },
-  { id: "QA", label: "Catar", en: "Qatar", flag: "🇶🇦" },
-  { id: "SA", label: "Arábia Saudita", en: "Saudi Arabia", flag: "🇸🇦" },
-  { id: "AE", label: "Emirados Árabes", en: "UAE", flag: "🇦🇪" },
-  { id: "MEA", label: "Oriente Médio", en: "Middle East", flag: "🕌" },
-  { id: "ZA", label: "África do Sul", en: "South Africa", flag: "🇿🇦" },
-  { id: "AFR", label: "África", en: "Africa", flag: "🌍" },
+export const REGIONS: Region[] = [
+  { id: "US",   label: "Estados Unidos", en: "United States", flag: "🇺🇸", members: ["US"] },
+  { id: "ASIA", label: "Ásia",           en: "Asia",          flag: "🌏", members: ["CN", "JP", "KR"] },
+  { id: "EURO", label: "Zona do Euro",   en: "Eurozone",      flag: "🇪🇺", members: ["GB", "DE", "FR", "ES", "IT", "NL"] },
 ];
 
-const BY_ID = new Map(COUNTRIES.map((c) => [c.id, c]));
-export function getCountry(id: string): Country | undefined {
+// uniao de todos os codigos cobertos (o Mundo sem regiao selecionada mostra so estes).
+export const ALL_MEMBERS: string[] = REGIONS.flatMap((r) => r.members);
+
+const BY_ID = new Map(REGIONS.map((r) => [r.id, r]));
+
+export function getRegion(id: string): Region | undefined {
   return BY_ID.get(id);
 }
-// rotulo no idioma escolhido (fallback: id)
-export function countryLabel(id: string, lang: "pt" | "en" = "pt"): string {
-  const c = BY_ID.get(id);
-  return c ? (lang === "en" ? c.en : c.label) : id;
+
+// codigos de pais de uma regiao (vazio = regiao invalida).
+export function regionMembers(id: string): string[] {
+  return BY_ID.get(id)?.members ?? [];
+}
+
+// rotulo da regiao no idioma escolhido (fallback: id).
+export function regionLabel(id: string, lang: "pt" | "en" = "pt"): string {
+  const r = BY_ID.get(id);
+  return r ? (lang === "en" ? r.en : r.label) : id;
 }

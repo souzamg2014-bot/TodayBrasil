@@ -1,34 +1,35 @@
-// Resumos Inteligentes: temas (5) e janelas de tempo (2: manha|tarde). Fonte unica
-// usada no front (/resumos) e nos scripts de geracao. As janelas sao INTERNAS: o
-// site nao expoe seletor de janela, so exibe o resumo pronto rotulado Manha/Tarde.
+// Resumos Inteligentes (produto de inteligência / clipping "sob consulta").
+// Um resumo agregado por SETOR de negócio, cobrindo o dia inteiro. Fonte única
+// usada no front (/resumos) e nos scripts de geração.
+//
+// Deixamos de usar janelas de tempo (manhã/tarde): agora é um panorama por setor,
+// do dia. O campo `janela` no banco recebe um valor fixo ('geral') só para manter
+// a unicidade por (tema, janela, data_ref).
 
-export type Tema = { id: string; label: string };
-
-export const TEMAS: Tema[] = [
-  { id: "ma", label: "M&A" },
-  { id: "startup", label: "Startups" },
-  { id: "inovacao", label: "Inovação & IA" },
-  { id: "industria", label: "Indústria" },
-  { id: "politica", label: "Política & Regulação" },
-];
-
-// Janelas que cobrem as 24h. start/end em horas locais (BRT).
-// 'manha' atravessa a meia-noite (18:00 do dia anterior -> 07:00).
-export type Janela = {
-  id: string;
-  label: string;
-  faixa: string; // rotulo curto p/ exibir
-  start: number; // hora de inicio (0-23)
-  end: number;   // hora de fim (0-23)
+export type Tema = {
+  id: string;      // id do resumo (= "tema"/setor)
+  label: string;   // rótulo exibido
+  sector?: string; // setor da taxonomia (src/lib/sectors.ts) de onde vem o material
+  lens?: string;   // OU lente/tema (src/lib/themes.ts), ex.: M&A
 };
 
-export const JANELAS: Janela[] = [
-  { id: "manha", label: "Manhã", faixa: "0h–12h", start: 0, end: 12 },
-  { id: "tarde", label: "Tarde", faixa: "12h–24h", start: 12, end: 24 },
+// Setores de negócio + M&A. Ordem = ordem de exibição.
+export const TEMAS: Tema[] = [
+  { id: "ma",         label: "M&A",                    lens: "ma" },
+  { id: "agro",       label: "Agronegócio",            sector: "agronegocio" },
+  { id: "comercio",   label: "Comércio e Varejo",      sector: "comercio-varejista" },
+  { id: "industria",  label: "Indústria",              sector: "industria" },
+  { id: "tecnologia", label: "Tecnologia",             sector: "tecnologia-software" },
+  { id: "telecom",    label: "Telecom",                sector: "telecomunicacoes" },
+  { id: "financeiro", label: "Financeiro",             sector: "servicos-financeiros" },
+  { id: "transporte", label: "Transporte e Logística", sector: "transporte-logistica" },
+  { id: "energia",    label: "Energia",                sector: "energia-recursos" },
+  { id: "saude",      label: "Saúde",                  sector: "saude-bem-estar" },
+  { id: "construcao", label: "Construção e Imobiliário", sector: "construcao-imobiliario" },
 ];
 
-const TEMA_BY = new Map(TEMAS.map((t) => [t.id, t]));
-const JANELA_BY = new Map(JANELAS.map((j) => [j.id, j]));
+// valor fixo do campo `janela` no banco (janelas de tempo foram removidas).
+export const JANELA_GERAL = "geral";
 
+const TEMA_BY = new Map(TEMAS.map((t) => [t.id, t]));
 export const getTema = (id: string) => TEMA_BY.get(id);
-export const getJanela = (id: string) => JANELA_BY.get(id);
